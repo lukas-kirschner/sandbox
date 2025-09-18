@@ -1,5 +1,5 @@
-#[derive(Copy, Clone)]
-pub enum Element{
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub enum Element {
     None,
     Sand,
 }
