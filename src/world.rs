@@ -20,15 +20,15 @@ impl GameWorld {
             for x in 0..width {
                 // new_board[x][y] = self.board[x][y];
                 // Gravity
-                if (y == 0) {
+                if (y == height - 1) {
                     new_board[x][y] = self.board[x][y];
                 }
                 if y > 0 {
                     if new_board[x][y] == Element::None && self.board[x][y - 1] != Element::None {
                         new_board[x][y] = self.board[x][y-1];
-                    } /*else {
-                        new_board[x][y] = self.board[x][y];
-                    }*/
+                    } else if new_board[x][y] != Element::None && self.board[x][y - 1] != Element::None {
+                        new_board[x][y-1] = self.board[x][y-1];
+                    }
                 }
             }
         }
