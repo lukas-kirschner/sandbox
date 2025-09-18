@@ -11,6 +11,12 @@ pub struct Ui {
 }
 
 impl Ui {
+    pub fn cursor_size(&self) -> i32 {
+        1
+    }
+}
+
+impl Ui {
     pub(crate) fn window_to_board_coordinate(
         &self,
         window_x: i32,
