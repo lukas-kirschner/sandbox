@@ -12,8 +12,8 @@ impl GameWorld {
             for drw_y in (max(0, y - ui.cursor_size()))
                 ..=(min(self.board[0].len() as i32, y + ui.cursor_size()))
             {
-                for drw_x in max(0, (x - ui.cursor_size()))
-                    ..=min(self.board.len() as i32, (x + ui.cursor_size()))
+                for drw_x in max(0, x - ui.cursor_size())
+                    ..=min(self.board.len() as i32, x + ui.cursor_size())
                 {
                     self.board[drw_x as usize][drw_y as usize] = element;
                 }
@@ -29,7 +29,7 @@ impl GameWorld {
             for x in 0..width {
                 // new_board[x][y] = self.board[x][y];
                 // Gravity
-                if (y == height - 1) {
+                if y == height - 1 {
                     new_board[x][y] = self.board[x][y];
                 }
                 if y > 0 {

@@ -26,7 +26,11 @@ impl Ui {
             window_x - (self.win_width - self.board_width) as i32 / 2,
             window_y - (self.win_height - self.board_height) as i32 / 2,
         );
-        if ret.0 < 0 || ret.1 < 0 || ret.0 >= self.board_width as i32 || ret.1 >= self.board_height as i32 {
+        if ret.0 < 0
+            || ret.1 < 0
+            || ret.0 >= self.board_width as i32
+            || ret.1 >= self.board_height as i32
+        {
             None
         } else {
             Some(ret)
@@ -47,10 +51,10 @@ impl Ui {
     pub fn draw(&self, canvas: &mut WindowCanvas, world: &GameWorld) -> Result<(), String> {
         let left_padding: i32 = ((self.win_width - self.board_width) / 2) as i32 - 1;
         let top_padding: i32 = ((self.win_height - self.board_height) / 2) as i32 - 1;
-        let right_padding: i32 = ((self.win_width as i32 - left_padding)
-            + ((self.win_width - self.board_width) % 2) as i32);
-        let bottom_padding: i32 = ((self.win_height as i32 - top_padding)
-            + ((self.win_height - self.board_height) % 2) as i32);
+        let right_padding: i32 = (self.win_width as i32 - left_padding)
+            + ((self.win_width - self.board_width) % 2) as i32;
+        let bottom_padding: i32 = (self.win_height as i32 - top_padding)
+            + ((self.win_height - self.board_height) % 2) as i32;
 
         // Draw a border around the board
         canvas.set_draw_color(BOARD_BORDER_COLOR);

@@ -33,8 +33,8 @@ fn main() -> Result<(), String> {
     let gl_attr = video_subsystem.gl_attr();
     gl_attr.set_context_profile(GLProfile::Core);
     // On linux, OpenGL ES Mesa driver 22.0.0+ can be used like so:
-    // gl_attr.set_context_profile(GLProfile::GLES);
-    let mut ui = Ui::new(1280, 720);
+    gl_attr.set_context_profile(GLProfile::GLES);
+    let ui = Ui::new(1280, 720);
     let window = video_subsystem
         .window("Sandbox", ui.win_width as u32, ui.win_height as u32)
         .position_centered()
@@ -42,8 +42,8 @@ fn main() -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     let mut canvas = window
         .into_canvas()
-        .target_texture()
         .present_vsync()
+        .accelerated()
         .build()
         .map_err(|e| e.to_string())?;
     let mut world: GameWorld = GameWorld::new(ui.board_width, ui.board_height);
@@ -62,7 +62,7 @@ fn main() -> Result<(), String> {
                 } => {
                     if mousestate.is_mouse_button_pressed(MouseButton::Left) {
                         world.insert_element_at(&ui, x, y, Element::Sand);
-                    } else if (mousestate.is_mouse_button_pressed(MouseButton::Right)) {
+                    } else if mousestate.is_mouse_button_pressed(MouseButton::Right) {
                         // Delete the element at the given position
                         world.insert_element_at(&ui, x, y, Element::None);
                     } else {
@@ -75,7 +75,7 @@ fn main() -> Result<(), String> {
         // Calculate the next board state
         world = world.tick();
         // Draw the new board to the window
-        ui.draw(&mut canvas, &world);
+        ui.draw(&mut canvas, &world)?;
     }
     Ok(())
 }
