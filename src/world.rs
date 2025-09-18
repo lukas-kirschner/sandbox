@@ -10,10 +10,10 @@ impl GameWorld {
     pub fn insert_element_at(&mut self, ui: &Ui, window_x: i32, window_y: i32, element: Element) {
         if let Some((x, y)) = ui.window_to_board_coordinate(window_x, window_y) {
             for drw_y in (max(0, y - ui.cursor_size()))
-                ..=(min(self.board[0].len() as i32, y + ui.cursor_size()))
+                ..=(min(self.board[0].len() as i32 - 1, y + ui.cursor_size()))
             {
                 for drw_x in max(0, x - ui.cursor_size())
-                    ..=min(self.board.len() as i32, x + ui.cursor_size())
+                    ..=min(self.board.len() as i32 - 1, x + ui.cursor_size())
                 {
                     self.board[drw_x as usize][drw_y as usize] = element;
                 }
