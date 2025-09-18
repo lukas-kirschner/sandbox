@@ -11,6 +11,24 @@ pub struct Ui {
 }
 
 impl Ui {
+    pub(crate) fn window_to_board_coordinate(
+        &self,
+        window_x: i32,
+        window_y: i32,
+    ) -> Option<(i32, i32)> {
+        let ret = (
+            window_x - (self.win_width - self.board_width) as i32 / 2,
+            window_y - (self.win_height - self.board_height) as i32 / 2,
+        );
+        if ret.0 < 0 || ret.1 < 0 || ret.0 >= self.board_width as i32 || ret.1 >= self.board_height as i32 {
+            None
+        } else {
+            Some(ret)
+        }
+    }
+}
+
+impl Ui {
     pub fn new(width: usize, height: usize) -> Self {
         Self {
             win_width: width,
@@ -47,10 +65,13 @@ impl Ui {
             Point::from((left_padding, top_padding)),
         )?;
         // Draw the board
-        for y in 0..self.board_height{
-            for x in 0..self.board_width{
+        for y in 0..self.board_height {
+            for x in 0..self.board_width {
                 canvas.set_draw_color(world.board()[x][y].color());
-                canvas.draw_point(Point::from((x as i32 + left_padding + 1,y as i32 + top_padding + 1)))?;
+                canvas.draw_point(Point::from((
+                    x as i32 + left_padding + 1,
+                    y as i32 + top_padding + 1,
+                )))?;
             }
         }
 

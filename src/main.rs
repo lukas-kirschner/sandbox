@@ -21,8 +21,9 @@ mod colors;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::mouse::MouseButton;
+use sdl2::mouse::{MouseButton, MouseState};
 use sdl2::video::GLProfile;
+use crate::element::Element;
 use crate::ui::Ui;
 use crate::world::GameWorld;
 
@@ -56,12 +57,18 @@ fn main() -> Result<(), String> {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
-                Event::MouseButtonDown {
-                    x,
-                    y,
-                    mouse_btn: MouseButton::Left,
-                    ..
-                } =>{},
+                Event::MouseMotion {
+                    timestamp, window_id, which, mousestate, x, y, xrel, yrel
+                } => {
+                    if mousestate.is_mouse_button_pressed(MouseButton::Left){
+                        world.insert_element_at(&ui,x,y,Element::Sand);
+                    } else if (mousestate.is_mouse_button_pressed(MouseButton::Right)){
+                        // Delete the element at the given position
+                        world.insert_element_at(&ui,x,y,Element::None);
+                    } else {
+                        // world.show_element_preview(&ui,x,y,Element::Sand);
+                    }
+                },
                     _ => {},
             }
         }
