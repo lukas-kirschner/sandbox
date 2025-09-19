@@ -24,6 +24,8 @@ const TICKS_PER_SECOND: usize = 120;
 use crate::element::Element;
 use crate::ui::Ui;
 use crate::world::GameWorld;
+use rand::SeedableRng;
+use rand_xorshift::XorShiftRng;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::MouseButton;
@@ -60,6 +62,7 @@ fn main() -> Result<(), String> {
         .unwrap();
     let timer = sdl_context.timer()?;
     let mut prev_tick = timer.ticks64();
+    let mut rng = XorShiftRng::seed_from_u64(0);
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {
         // get the inputs here
@@ -90,7 +93,7 @@ fn main() -> Result<(), String> {
         if ticks > 0 {
             for _ in 0..ticks {
                 // Calculate the next board state
-                world = world.tick();
+                world = world.tick(&mut rng);
             }
             prev_tick = timer.ticks64();
         }

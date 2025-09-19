@@ -1,5 +1,6 @@
 use crate::element::Element;
 use crate::ui::Ui;
+use rand::{Rng, RngCore};
 use std::cmp::{max, min};
 
 pub struct GameWorld {
@@ -21,7 +22,7 @@ impl GameWorld {
         }
     }
     /// Tick (Calculate the next iteration of this board, cloning the complete board state
-    pub fn tick(&self) -> Self {
+    pub fn tick(&self, rng: &mut dyn RngCore) -> Self {
         let height = self.board[0].len();
         let width = self.board.len();
         let mut new_board = vec![vec![Element::None; height]; width];
@@ -39,7 +40,22 @@ impl GameWorld {
                             new_board[x][y] = Element::None;
                         } else {
                             // Collision
-                            new_board[x][y] = self.board[x][y];
+                            let botleft = x > 0 && new_board[x - 1][y + 1] == Element::None;
+                            let botright =
+                                x < (width - 1) && new_board[x + 1][y + 1] == Element::None;
+                            if botleft && botright {
+                                if rng.random_bool(0.5) {
+                                    new_board[x - 1][y + 1] = self.board[x][y];
+                                } else {
+                                    new_board[x + 1][y + 1] = self.board[x][y];
+                                }
+                            } else if botleft {
+                                new_board[x - 1][y + 1] = self.board[x][y];
+                            } else if botright {
+                                new_board[x + 1][y + 1] = self.board[x][y];
+                            } else {
+                                new_board[x][y] = self.board[x][y];
+                            }
                         }
                     }
                 }
