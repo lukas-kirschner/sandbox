@@ -25,6 +25,7 @@ use crate::world::GameWorld;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::MouseButton;
+use sdl2::pixels::PixelFormatEnum;
 use sdl2::video::GLProfile;
 
 fn main() -> Result<(), String> {
@@ -47,6 +48,14 @@ fn main() -> Result<(), String> {
         .build()
         .map_err(|e| e.to_string())?;
     let mut world: GameWorld = GameWorld::new(ui.board_width, ui.board_height);
+    let creator = canvas.texture_creator();
+    let mut texture = creator
+        .create_texture_streaming(
+            PixelFormatEnum::ARGB8888,
+            ui.board_width as u32,
+            ui.board_height as u32,
+        )
+        .unwrap();
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {
         // get the inputs here
@@ -75,7 +84,7 @@ fn main() -> Result<(), String> {
         // Calculate the next board state
         world = world.tick();
         // Draw the new board to the window
-        ui.draw(&mut canvas, &world)?;
+        ui.draw(&mut canvas, &mut texture, &world)?;
     }
     Ok(())
 }

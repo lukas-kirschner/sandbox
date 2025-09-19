@@ -8,3 +8,6 @@ edition = "2024"
 [dependencies.sdl2]
 version = "0.38.0"
 default-features = true
+
+[lints.clippy]
+needless_range_loop = "allow"

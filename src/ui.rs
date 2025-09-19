@@ -1,7 +1,7 @@
 use crate::colors::BOARD_BORDER_COLOR;
 use crate::world::GameWorld;
-use sdl2::rect::Point;
-use sdl2::render::WindowCanvas;
+use sdl2::rect::{Point, Rect};
+use sdl2::render::{Texture, WindowCanvas};
 
 pub struct Ui {
     pub win_width: usize,
@@ -14,9 +14,6 @@ impl Ui {
     pub fn cursor_size(&self) -> i32 {
         1
     }
-}
-
-impl Ui {
     pub(crate) fn window_to_board_coordinate(
         &self,
         window_x: i32,
@@ -36,9 +33,6 @@ impl Ui {
             Some(ret)
         }
     }
-}
-
-impl Ui {
     pub fn new(width: usize, height: usize) -> Self {
         Self {
             win_width: width,
@@ -48,7 +42,12 @@ impl Ui {
         }
     }
     /// Draw the window content
-    pub fn draw(&self, canvas: &mut WindowCanvas, world: &GameWorld) -> Result<(), String> {
+    pub fn draw(
+        &self,
+        canvas: &mut WindowCanvas,
+        texture: &mut Texture,
+        world: &GameWorld,
+    ) -> Result<(), String> {
         let left_padding: i32 = ((self.win_width - self.board_width) / 2) as i32 - 1;
         let top_padding: i32 = ((self.win_height - self.board_height) / 2) as i32 - 1;
         let right_padding: i32 = (self.win_width as i32 - left_padding)
@@ -74,16 +73,34 @@ impl Ui {
             Point::from((left_padding, bottom_padding)),
             Point::from((left_padding, top_padding)),
         )?;
+
         // Draw the board
+        let mut pixel_data: Vec<u8> = vec![0u8; self.board_height * self.board_width * 4];
         for y in 0..self.board_height {
             for x in 0..self.board_width {
-                canvas.set_draw_color(world.board()[x][y].color());
-                canvas.draw_point(Point::from((
-                    x as i32 + left_padding + 1,
-                    y as i32 + top_padding + 1,
-                )))?;
+                pixel_data[((y * self.board_width) + x) * 4] = 0xff;
+                pixel_data[((y * self.board_width) + x) * 4 + 1] = world.board()[x][y].color().r;
+                pixel_data[((y * self.board_width) + x) * 4 + 2] = world.board()[x][y].color().g;
+                pixel_data[((y * self.board_width) + x) * 4 + 3] = world.board()[x][y].color().b;
             }
         }
+        texture
+            .update(
+                Rect::from((0, 0, self.board_width as u32, self.board_height as u32)),
+                pixel_data.as_slice(),
+                self.board_width * 4,
+            )
+            .map_err(|e| e.to_string())?;
+        canvas.copy(
+            texture,
+            None,
+            Rect::from((
+                left_padding + 1,
+                top_padding + 1,
+                self.board_width as u32,
+                self.board_height as u32,
+            )),
+        )?;
 
         // Finalize
         canvas.present();
