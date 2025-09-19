@@ -8,6 +8,7 @@ pub struct Ui {
     pub win_height: usize,
     pub board_width: usize,
     pub board_height: usize,
+    pixel_data: Vec<u8>,
 }
 
 impl Ui {
@@ -34,16 +35,18 @@ impl Ui {
         }
     }
     pub fn new(width: usize, height: usize) -> Self {
+        let pixel_data: Vec<u8> = vec![0u8; height * width * 4];
         Self {
             win_width: width,
             win_height: height,
             board_width: width - 120,
             board_height: height - 40,
+            pixel_data,
         }
     }
-    /// Draw the window content
+    /// Draw self.the window content
     pub fn draw(
-        &self,
+        &mut self,
         canvas: &mut WindowCanvas,
         texture: &mut Texture,
         world: &GameWorld,
@@ -75,19 +78,21 @@ impl Ui {
         )?;
 
         // Draw the board
-        let mut pixel_data: Vec<u8> = vec![0u8; self.board_height * self.board_width * 4];
         for y in 0..self.board_height {
             for x in 0..self.board_width {
-                pixel_data[((y * self.board_width) + x) * 4] = 0xff;
-                pixel_data[((y * self.board_width) + x) * 4 + 1] = world.board()[x][y].color().r;
-                pixel_data[((y * self.board_width) + x) * 4 + 2] = world.board()[x][y].color().g;
-                pixel_data[((y * self.board_width) + x) * 4 + 3] = world.board()[x][y].color().b;
+                self.pixel_data[((y * self.board_width) + x) * 4] = 0xff;
+                self.pixel_data[((y * self.board_width) + x) * 4 + 1] =
+                    world.board()[x][y].color().r;
+                self.pixel_data[((y * self.board_width) + x) * 4 + 2] =
+                    world.board()[x][y].color().g;
+                self.pixel_data[((y * self.board_width) + x) * 4 + 3] =
+                    world.board()[x][y].color().b;
             }
         }
         texture
             .update(
                 Rect::from((0, 0, self.board_width as u32, self.board_height as u32)),
-                pixel_data.as_slice(),
+                self.pixel_data.as_slice(),
                 self.board_width * 4,
             )
             .map_err(|e| e.to_string())?;
