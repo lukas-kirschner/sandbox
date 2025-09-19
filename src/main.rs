@@ -18,6 +18,8 @@ mod colors;
 mod element;
 mod ui;
 mod world;
+/// How fast the simulation runs, independently of framerate
+const TICKS_PER_SECOND: usize = 30;
 
 use crate::element::Element;
 use crate::ui::Ui;
@@ -32,7 +34,7 @@ fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
     let gl_attr = video_subsystem.gl_attr();
-    gl_attr.set_context_profile(GLProfile::Core);
+    // gl_attr.set_context_profile(GLProfile::Core);
     // On linux, OpenGL ES Mesa driver 22.0.0+ can be used like so:
     gl_attr.set_context_profile(GLProfile::GLES);
     let ui = Ui::new(1280, 720);
@@ -56,6 +58,8 @@ fn main() -> Result<(), String> {
             ui.board_height as u32,
         )
         .unwrap();
+    let timer = sdl_context.timer()?;
+    let mut prev_tick = timer.ticks64();
     let mut event_pump = sdl_context.event_pump()?;
     'running: loop {
         // get the inputs here
@@ -81,10 +85,20 @@ fn main() -> Result<(), String> {
                 _ => {},
             }
         }
-        // Calculate the next board state
-        world = world.tick();
+        let ticks =
+            ((timer.ticks64() - prev_tick) as f64 / 1000. * TICKS_PER_SECOND as f64) as usize;
+        println!("{} ticks", ticks);
+        if ticks > 0 {
+            for _ in 0..ticks {
+                // Calculate the next board state
+                world = world.tick();
+            }
+            prev_tick = timer.ticks64();
+        }
         // Draw the new board to the window
         ui.draw(&mut canvas, &mut texture, &world)?;
+        // Update the window
+        canvas.present();
     }
     Ok(())
 }

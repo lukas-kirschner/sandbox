@@ -41,7 +41,7 @@ impl Ui {
             board_height: height - 40,
         }
     }
-    /// Draw self.the window content
+    /// Draw the window content
     pub fn draw(
         &self,
         canvas: &mut WindowCanvas,
@@ -75,19 +75,22 @@ impl Ui {
         )?;
 
         // Draw the board
-        texture.with_lock(Rect::from((0, 0, self.board_width as u32, self.board_height as u32)),|pixel_data,_pitch| {
-            for y in 0..self.board_height {
-                for x in 0..self.board_width {
-                    pixel_data[((y * self.board_width) + x) * 4] = 0xff;
-                    pixel_data[((y * self.board_width) + x) * 4 + 1] =
-                        world.board()[x][y].color().r;
-                    pixel_data[((y * self.board_width) + x) * 4 + 2] =
-                        world.board()[x][y].color().g;
-                    pixel_data[((y * self.board_width) + x) * 4 + 3] =
-                        world.board()[x][y].color().b;
+        texture.with_lock(
+            Rect::from((0, 0, self.board_width as u32, self.board_height as u32)),
+            |pixel_data, _pitch| {
+                for y in 0..self.board_height {
+                    for x in 0..self.board_width {
+                        pixel_data[((y * self.board_width) + x) * 4] = 0xff;
+                        pixel_data[((y * self.board_width) + x) * 4 + 1] =
+                            world.board()[x][y].color().r;
+                        pixel_data[((y * self.board_width) + x) * 4 + 2] =
+                            world.board()[x][y].color().g;
+                        pixel_data[((y * self.board_width) + x) * 4 + 3] =
+                            world.board()[x][y].color().b;
+                    }
                 }
-            }
-        })?;
+            },
+        )?;
         canvas.copy(
             texture,
             None,
@@ -99,8 +102,6 @@ impl Ui {
             )),
         )?;
 
-        // Finalize
-        canvas.present();
         Ok(())
     }
 }
