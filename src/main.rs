@@ -35,7 +35,7 @@ fn main() -> Result<(), String> {
     gl_attr.set_context_profile(GLProfile::Core);
     // On linux, OpenGL ES Mesa driver 22.0.0+ can be used like so:
     gl_attr.set_context_profile(GLProfile::GLES);
-    let mut ui = Ui::new(1280, 720);
+    let ui = Ui::new(1280, 720);
     let window = video_subsystem
         .window("Sandbox", ui.win_width as u32, ui.win_height as u32)
         .position_centered()
