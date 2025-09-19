@@ -19,7 +19,7 @@ mod element;
 mod ui;
 mod world;
 /// How fast the simulation runs, independently of framerate
-const TICKS_PER_SECOND: usize = 30;
+const TICKS_PER_SECOND: usize = 120;
 
 use crate::element::Element;
 use crate::ui::Ui;
@@ -87,7 +87,6 @@ fn main() -> Result<(), String> {
         }
         let ticks =
             ((timer.ticks64() - prev_tick) as f64 / 1000. * TICKS_PER_SECOND as f64) as usize;
-        println!("{} ticks", ticks);
         if ticks > 0 {
             for _ in 0..ticks {
                 // Calculate the next board state

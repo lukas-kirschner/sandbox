@@ -31,14 +31,16 @@ impl GameWorld {
                 // Gravity
                 if y == height - 1 {
                     new_board[x][y] = self.board[x][y];
-                }
-                if y > 0 {
-                    if new_board[x][y] == Element::None && self.board[x][y - 1] != Element::None {
-                        new_board[x][y] = self.board[x][y - 1];
-                    } else if new_board[x][y] != Element::None
-                        && self.board[x][y - 1] != Element::None
-                    {
-                        new_board[x][y - 1] = self.board[x][y - 1];
+                } else {
+                    if self.board[x][y] != Element::None {
+                        if new_board[x][y + 1] == Element::None {
+                            // Fall down
+                            new_board[x][y + 1] = self.board[x][y];
+                            new_board[x][y] = Element::None;
+                        } else {
+                            // Collision
+                            new_board[x][y] = self.board[x][y];
+                        }
                     }
                 }
             }
