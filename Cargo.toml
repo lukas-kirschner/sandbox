@@ -14,3 +14,4 @@ default-features = true
 [lints.clippy]
 needless_range_loop = "allow"
 collapsible_else_if = "allow"
+collapsible_if = "allow"
