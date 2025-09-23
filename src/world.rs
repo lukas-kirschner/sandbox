@@ -1,10 +1,43 @@
 use crate::element::Element;
 use crate::ui::Ui;
 use rand::{Rng, RngCore};
-use std::cmp::{max, min};
+use std::cmp::{max, min, Ordering};
 
+enum Move {
+    MoveElement {
+        from_x: usize,
+        from_y: usize,
+        to_x: usize,
+        to_y: usize,
+    },
+}
+impl Move {
+    pub fn same_dest_as(&self, other: &Move) -> bool {
+        match self {
+            Move::MoveElement {
+                from_x,
+                from_y,
+                to_x,
+                to_y,
+            } => {
+                let (my_x, my_y) = (to_x, to_y);
+                match other {
+                    Move::MoveElement {
+                        from_x,
+                        from_y,
+                        to_x,
+                        to_y,
+                    } => {
+                        to_x == my_x && to_y == my_y
+                    },
+                }
+            },
+        }
+    }
+}
 pub struct GameWorld {
     board: Vec<Vec<Element>>,
+    moves: Vec<Move>,
 }
 
 impl GameWorld {
@@ -21,47 +54,130 @@ impl GameWorld {
             }
         }
     }
-    /// Tick (Calculate the next iteration of this board, cloning the complete board state
-    pub fn tick(&self, rng: &mut dyn RngCore) -> Self {
+    /// Try to push a 'move down' to the moves vector and return true if that succeeded.
+    fn move_down(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
+        if y < (self.board[0].len() - 1) {
+            if self.board[x][y + 1] == Element::None {
+                self.moves.push(Move::MoveElement {
+                    from_x: x,
+                    from_y: y,
+                    to_x: x,
+                    to_y: y + 1,
+                });
+                return true;
+            }
+        }
+        false
+    }
+    /// Try to push a 'move down side' to the moves vector and return true if that succeeded.
+    fn move_down_side(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
+        if y < (self.board[0].len() - 1) {
+            let mut down_left = x > 0 && self.board[x - 1][y + 1] == Element::None;
+            let mut down_right =
+                x < (self.board.len() - 1) && self.board[x + 1][y + 1] == Element::None;
+            if down_left && down_right {
+                down_left = rng.random_bool(0.5);
+                down_right = !down_left;
+            }
+            if down_left {
+                self.moves.push(Move::MoveElement {
+                    from_x: x,
+                    from_y: y,
+                    to_x: x - 1,
+                    to_y: y + 1,
+                });
+                return true;
+            }
+            if down_right {
+                self.moves.push(Move::MoveElement {
+                    from_x: x,
+                    from_y: y,
+                    to_x: x + 1,
+                    to_y: y + 1,
+                });
+                return true;
+            }
+        }
+        false
+    }
+    /// Tick (Calculate the next iteration of this board in-place)
+    pub fn tick(&mut self, rng: &mut dyn RngCore) -> () {
+        self.moves.clear();
         let height = self.board[0].len();
         let width = self.board.len();
-        let mut new_board = vec![vec![Element::None; height]; width];
         for y in (0..height).rev() {
             for x in 0..width {
                 // new_board[x][y] = self.board[x][y];
                 // Gravity
-                if y == height - 1 {
-                    new_board[x][y] = self.board[x][y];
-                } else {
+                if y != height - 1 {
                     if self.board[x][y] != Element::None {
-                        if new_board[x][y + 1] == Element::None {
-                            // Fall down
-                            new_board[x][y + 1] = self.board[x][y];
-                            new_board[x][y] = Element::None;
-                        } else {
-                            // Collision
-                            let botleft = x > 0 && new_board[x - 1][y + 1] == Element::None;
-                            let botright =
-                                x < (width - 1) && new_board[x + 1][y + 1] == Element::None;
-                            if botleft && botright {
-                                if rng.random_bool(0.5) {
-                                    new_board[x - 1][y + 1] = self.board[x][y];
-                                } else {
-                                    new_board[x + 1][y + 1] = self.board[x][y];
-                                }
-                            } else if botleft {
-                                new_board[x - 1][y + 1] = self.board[x][y];
-                            } else if botright {
-                                new_board[x + 1][y + 1] = self.board[x][y];
-                            } else {
-                                new_board[x][y] = self.board[x][y];
-                            }
+                        if !self.move_down(x, y, rng) {
+                            self.move_down_side(x, y, rng);
                         }
                     }
                 }
             }
         }
-        Self { board: new_board }
+        // Thanks, https://winter.dev/articles/falling-sand , for this algorithm
+
+        // Remove all filled cells from possible moves
+        for mut i in 0..self.moves.len() {
+            let Move::MoveElement {
+                from_x,
+                from_y,
+                to_x,
+                to_y,
+            } = self.moves[i];
+            if self.board[to_x][to_y] != Element::None {
+                self.moves[i] = self.moves.pop().unwrap();
+                i -= 1;
+            }
+        }
+
+        // Sort moves by destination
+        self.moves.sort_unstable_by(|m1,m2| {
+            match m1{
+                Move::MoveElement { from_x, from_y, to_x, to_y } => {
+                    let (x1,y1) = (to_x,to_y);
+                    match m2{
+                        Move::MoveElement { from_x, from_y, to_x, to_y } => {
+                            match to_x.cmp(x1){
+                                Ordering::Equal => to_y.cmp(y1),
+                                x => x
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Commit moves. If multiple moves into one single destination are possible, select a random one
+        self.moves.push(Move::MoveElement {
+            from_x: self.board.len(),
+            from_y: self.board[0].len(),
+            to_x: self.board.len(),
+            to_y: self.board[0].len(),
+        });
+        let mut prev_i = 0usize;
+        for i in 0..(self.moves.len() - 1) {
+            if !self.moves[i].same_dest_as(&self.moves[i + 1]) {
+                let random_choice = rng.random_range((i - prev_i)..=i);
+                // Execute the randomly chosen move
+                match self.moves[random_choice] {
+                    Move::MoveElement {
+                        from_x,
+                        from_y,
+                        to_x,
+                        to_y,
+                    } => {
+                        let elem = self.board[from_x][from_y];
+                        self.board[from_x][from_y] = self.board[to_x][to_y];
+                        self.board[to_x][to_y] = elem;
+                    },
+                }
+                prev_i = i + 1;
+            }
+        }
     }
 }
 
@@ -69,6 +185,7 @@ impl GameWorld {
     pub fn new(width: usize, height: usize) -> Self {
         Self {
             board: vec![vec![Element::None; height]; width],
+            moves: Vec::new(),
         }
     }
     pub fn board(&self) -> &Vec<Vec<Element>> {

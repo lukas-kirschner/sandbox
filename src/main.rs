@@ -93,7 +93,7 @@ fn main() -> Result<(), String> {
         if ticks > 0 {
             for _ in 0..ticks {
                 // Calculate the next board state
-                world = world.tick(&mut rng);
+                world.tick(&mut rng);
             }
             prev_tick = timer.ticks64();
         }
