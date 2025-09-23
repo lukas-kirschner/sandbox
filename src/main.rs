@@ -21,9 +21,13 @@ mod world;
 /// How fast the simulation runs, independently of framerate
 const TICKS_PER_SECOND: usize = 120;
 
+use std::time::Instant;
 use crate::element::Element;
 use crate::ui::Ui;
 use crate::world::GameWorld;
+use egui_sdl2_gl::{with_sdl2, EguiStateHandler};
+use egui_sdl2_gl::{egui, DpiScaling, ShaderVersion};
+use egui_sdl2_gl::egui::{Context, FullOutput};
 use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
 use sdl2::event::Event;
@@ -31,20 +35,26 @@ use sdl2::keyboard::Keycode;
 use sdl2::mouse::MouseButton;
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::video::GLProfile;
-
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
     let gl_attr = video_subsystem.gl_attr();
-    // gl_attr.set_context_profile(GLProfile::Core);
+    gl_attr.set_context_profile(GLProfile::Core);
     // On linux, OpenGL ES Mesa driver 22.0.0+ can be used like so:
-    gl_attr.set_context_profile(GLProfile::GLES);
+    // gl_attr.set_context_profile(GLProfile::GLES);
+    gl_attr.set_double_buffer(true);
+    gl_attr.set_multisample_samples(4);
     let ui = Ui::new(1280, 720);
     let window = video_subsystem
         .window("Sandbox", ui.win_width as u32, ui.win_height as u32)
         .position_centered()
+        .opengl()
         .build()
         .map_err(|e| e.to_string())?;
+    let _ctx = window.gl_create_context()?;
+    let shader_ver = ShaderVersion::Default;
+    let (mut painter, mut egui_state) = with_sdl2(&window, shader_ver, DpiScaling::Default);
+    let egui_ctx = egui::Context::default();
     let mut canvas = window
         .into_canvas()
         .present_vsync()
@@ -64,7 +74,9 @@ fn main() -> Result<(), String> {
     let mut prev_tick = timer.ticks64();
     let mut rng = XorShiftRng::seed_from_u64(0);
     let mut event_pump = sdl_context.event_pump()?;
+    let start_time = Instant::now();
     'running: loop {
+        draw_ui(&mut egui_state, &start_time, &egui_ctx);
         // get the inputs here
         for event in event_pump.poll_iter() {
             match event {
@@ -99,8 +111,28 @@ fn main() -> Result<(), String> {
         }
         // Draw the new board to the window
         ui.draw(&mut canvas, &mut texture, &world)?;
+
+        let FullOutput {
+            platform_output,
+            textures_delta,
+            shapes,
+            pixels_per_point,
+            viewport_output,
+        } = egui_ctx.end_pass();
+        egui_state.process_output(&canvas.window(), &platform_output);
+        let paint_jobs = egui_ctx.tessellate(shapes, pixels_per_point);
+        painter.paint_jobs(None, textures_delta, paint_jobs);
+
         // Update the window
         canvas.present();
     }
     Ok(())
+}
+
+fn draw_ui(egui_state:&mut EguiStateHandler, start_time:&Instant, egui_ctx: &Context) {
+    egui_state.input.time = Some(start_time.elapsed().as_secs_f64());
+    egui_ctx.begin_pass(egui_state.input.take());
+    egui::panel::SidePanel::right("sel-buttons").show(egui_ctx,|ui| {
+        ui.button("X");
+    });
 }
