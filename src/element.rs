@@ -8,6 +8,7 @@ pub enum Element {
     Water,
 }
 
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum ElementKind {
     None,
     Solid,
@@ -31,6 +32,15 @@ impl Element {
             Element::Sand => ElementKind::Powder { density: 1700.0 },
             Element::BrickWall => ElementKind::Solid,
             Element::Water => ElementKind::Liquid { density: 1000.0 },
+        }
+    }
+    pub fn density(&self) -> Option<f32> {
+        match self.kind() {
+            ElementKind::None => None,
+            ElementKind::Solid => None,
+            ElementKind::Powder { density } => Some(density),
+            ElementKind::Liquid { density } => Some(density),
+            ElementKind::Gas { density } => Some(density),
         }
     }
 }

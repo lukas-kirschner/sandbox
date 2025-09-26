@@ -1,7 +1,7 @@
 use crate::element::{Element, ElementKind};
 use crate::ui::Ui;
 use rand::{Rng, RngCore};
-use std::cmp::{Ordering, max, min};
+use std::cmp::{max, min, Ordering, PartialEq};
 
 enum Move {
     /// Move the source element to the empty target location
@@ -85,6 +85,30 @@ impl GameWorld {
         }
         false
     }
+    /// Try to push a 'swap down' to the moves vector and return true if that succeeded.
+    fn swap_down(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
+        if y < (self.board[0].len() - 1) {
+            let my_density = self.board[x][y].density();
+            let other_density = self.board[x][y + 1].density();
+            if let Some(a) = my_density {
+                if let Some(b) = other_density {
+                    let dens_q = b/a; // Density Quotient
+                    if dens_q < 1. {
+                        if rng.random_bool(1. - dens_q as f64) {
+                            self.moves.push(Move::SwapElement {
+                                from_x: x,
+                                from_y: y,
+                                to_x: x,
+                                to_y: y + 1,
+                            });
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        false
+    }
     /// Try to push a 'move down side' to the moves vector and return true if that succeeded.
     fn move_down_side(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
         if y < (self.board[0].len() - 1) {
@@ -159,7 +183,11 @@ impl GameWorld {
                         ElementKind::Solid => {},
                         ElementKind::Powder { .. } => {
                             if !self.move_down(x, y, rng) {
-                                self.move_down_side(x, y, rng);
+                                if !self.move_down_side(x, y, rng) {
+                                    if !self.swap_down(x, y, rng) {
+                                        // self.swap_down_side(x, y, rng);
+                                    }
+                                }
                             }
                         },
                         ElementKind::Liquid { .. } => {
