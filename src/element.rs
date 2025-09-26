@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use strum_macros::EnumIter;
 #[derive(Copy, Clone, Eq, PartialEq, Debug, EnumIter)]
 pub enum Element {
@@ -21,5 +22,19 @@ impl Element {
             Element::Sand => ElementKind::Powder { density: 1.0 },
             Element::BrickWall => ElementKind::Solid,
         }
+    }
+}
+
+impl Display for Element {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Element::None => "Air",
+                Element::Sand => "Sand",
+                Element::BrickWall => "Wall",
+            }
+        )
     }
 }

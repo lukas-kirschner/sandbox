@@ -8,11 +8,18 @@ pub struct Ui {
     pub win_height: usize,
     pub board_width: usize,
     pub board_height: usize,
+    cursor_size: i32,
+}
+
+impl Ui {
+    pub(crate) fn set_cursor_size(&mut self, new_size: i32) {
+        self.cursor_size = new_size
+    }
 }
 
 impl Ui {
     pub fn cursor_size(&self) -> i32 {
-        1
+        self.cursor_size
     }
     pub(crate) fn window_to_board_coordinate(
         &self,
@@ -38,7 +45,8 @@ impl Ui {
             win_width: width,
             win_height: height,
             board_width: width - 120,
-            board_height: height - 40,
+            board_height: height - 80,
+            cursor_size: 3
         }
     }
     /// Draw the window content

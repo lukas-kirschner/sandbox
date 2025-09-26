@@ -21,6 +21,11 @@ mod world;
 // /// How fast the simulation runs, independently of framerate
 // const TICKS_PER_SECOND: usize = 120;
 
+// UI colors:
+const INACTIVE_BUTTON_BACKGROUND:[f32;4] = [0.2, 0.2, 0.2, 1.0];
+const ACTIVE_BUTTON_BACKGROUND:[f32;4] = [0.5, 0.5, 0.5, 1.0];
+const HOVERED_BUTTON_BACKGROUND:[f32;4] = [0.6, 0.6, 0.6, 1.0];
+
 use crate::element::Element;
 use crate::ui::Ui;
 use crate::world::GameWorld;
@@ -44,7 +49,7 @@ fn main() -> Result<(), String> {
         gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
         gl_attr.set_context_version(3, 0);
     }
-    let game_world = Ui::new(1280, 720);
+    let mut game_world = Ui::new(1280, 720);
     let window = video_subsystem
         .window(
             "Sandbox",
@@ -127,6 +132,7 @@ fn main() -> Result<(), String> {
 
         let ui = imgui.frame();
         build_element_buttons(ui, &game_world, &mut current_elem);
+        build_top_settings_pane(ui,&mut game_world);
 
         // Update the window graphics
         // Draw the new board to the window
@@ -149,10 +155,10 @@ fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element
     let buttonbar_width = (game_world.win_width - game_world.board_width) / 2 - 2;
     let win = ui
         .window("element_button_sidebar")
-        .size([buttonbar_width as f32, win_height], Condition::Always)
+        .size([buttonbar_width as f32, win_height - (game_world.win_height - game_world.board_height + 2) as f32], Condition::Always)
         .resizable(false)
         .movable(false)
-        .position([win_width - buttonbar_width as f32, 0.0], Condition::Always)
+        .position([win_width - buttonbar_width as f32, (game_world.win_height - game_world.board_height) as f32 / 2. - 1.], Condition::Always)
         .movable(false)
         .collapsible(false)
         .title_bar(false);
@@ -161,18 +167,50 @@ fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element
             if e == Element::None {
                 continue;
             }
-            let hovercolor = ui.push_style_color(StyleColor::ButtonHovered, [0.6, 0.6, 0.6, 1.0]);
+            let hovercolor = ui.push_style_color(StyleColor::ButtonHovered, HOVERED_BUTTON_BACKGROUND);
             let bgcolor = if &e == selected {
-                ui.push_style_color(StyleColor::Button, [0.5, 0.5, 0.5, 1.0])
+                ui.push_style_color(StyleColor::Button, ACTIVE_BUTTON_BACKGROUND)
             } else {
-                ui.push_style_color(StyleColor::Button, [0.2, 0.2, 0.2, 1.0])
+                ui.push_style_color(StyleColor::Button, INACTIVE_BUTTON_BACKGROUND)
             };
-            ui.button(format!("{:?}", e));
+            ui.button(format!("{}", e));
             if ui.is_item_clicked() {
                 *selected = e;
             }
             bgcolor.pop();
             hovercolor.pop()
+        }
+    });
+}
+fn build_top_settings_pane(ui: &imgui::Ui, game_world: &mut Ui) {
+    let [win_width, _win_height] = ui.io().display_size;
+    // Border width 1px
+    let buttonbar_height = (game_world.win_height - game_world.board_height) / 2 - 2;
+    let win = ui
+        .window("element_button_settings")
+        .size([win_width, buttonbar_height as f32], Condition::Always)
+        .resizable(false)
+        .movable(false)
+        .position([0.0, 0.0], Condition::Always)
+        .movable(false)
+        .collapsible(false)
+        .title_bar(false);
+    win.build(|| {
+        ui.text("Cursor:");
+        for e in [1,2,3,4,5,10,15,20] {
+            ui.same_line();
+            let hovercolor = ui.push_style_color(StyleColor::ButtonHovered, HOVERED_BUTTON_BACKGROUND);
+            let bgcolor = if e == game_world.cursor_size() {
+                ui.push_style_color(StyleColor::Button, ACTIVE_BUTTON_BACKGROUND)
+            } else {
+                ui.push_style_color(StyleColor::Button, INACTIVE_BUTTON_BACKGROUND)
+            };
+            ui.button(format!("{}", e));
+            if ui.is_item_clicked() {
+                game_world.set_cursor_size(e);
+            }
+            bgcolor.pop();
+            hovercolor.pop();
         }
     });
 }
