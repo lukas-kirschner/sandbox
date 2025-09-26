@@ -4,7 +4,15 @@ use rand::{Rng, RngCore};
 use std::cmp::{Ordering, max, min};
 
 enum Move {
+    /// Move the source element to the empty target location
     MoveElement {
+        from_x: usize,
+        from_y: usize,
+        to_x: usize,
+        to_y: usize,
+    },
+    /// Swap the given elements
+    SwapElement {
         from_x: usize,
         from_y: usize,
         to_x: usize,
@@ -13,23 +21,33 @@ enum Move {
 }
 impl Move {
     pub fn same_dest_as(&self, other: &Move) -> bool {
-        match self {
+        let (old_x, old_y) = match self {
             Move::MoveElement {
                 from_x: _,
                 from_y: _,
                 to_x,
                 to_y,
-            } => {
-                let (my_x, my_y) = (to_x, to_y);
-                match other {
-                    Move::MoveElement {
-                        from_x: _,
-                        from_y: _,
-                        to_x,
-                        to_y,
-                    } => to_x == my_x && to_y == my_y,
-                }
-            },
+            } => (to_x, to_y),
+            Move::SwapElement {
+                from_x: _,
+                from_y: _,
+                to_x,
+                to_y,
+            } => (to_x, to_y),
+        };
+        match other {
+            Move::MoveElement {
+                from_x: _,
+                from_y: _,
+                to_x,
+                to_y,
+            } => to_x == old_x && to_y == old_y,
+            Move::SwapElement {
+                from_x: _,
+                from_y: _,
+                to_x,
+                to_y,
+            } => to_x == old_x && to_y == old_y,
         }
     }
 }
@@ -100,31 +118,30 @@ impl GameWorld {
     }
     /// Try to push a 'move side' to the moves vector and return true if that succeeded.
     fn move_side(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
-            let mut left = x > 0 && self.board[x - 1][y] == Element::None;
-            let mut right =
-                x < (self.board.len() - 1) && self.board[x + 1][y] == Element::None;
-            if left && right {
-                left = rng.random_bool(0.5);
-                right = !left;
-            }
-            if left {
-                self.moves.push(Move::MoveElement {
-                    from_x: x,
-                    from_y: y,
-                    to_x: x - 1,
-                    to_y: y,
-                });
-                return true;
-            }
-            if right {
-                self.moves.push(Move::MoveElement {
-                    from_x: x,
-                    from_y: y,
-                    to_x: x + 1,
-                    to_y: y,
-                });
-                return true;
-            }
+        let mut left = x > 0 && self.board[x - 1][y] == Element::None;
+        let mut right = x < (self.board.len() - 1) && self.board[x + 1][y] == Element::None;
+        if left && right {
+            left = rng.random_bool(0.5);
+            right = !left;
+        }
+        if left {
+            self.moves.push(Move::MoveElement {
+                from_x: x,
+                from_y: y,
+                to_x: x - 1,
+                to_y: y,
+            });
+            return true;
+        }
+        if right {
+            self.moves.push(Move::MoveElement {
+                from_x: x,
+                from_y: y,
+                to_x: x + 1,
+                to_y: y,
+            });
+            return true;
+        }
         false
     }
     /// Tick (Calculate the next iteration of this board in-place)
@@ -145,9 +162,9 @@ impl GameWorld {
                                 self.move_down_side(x, y, rng);
                             }
                         },
-                        ElementKind::Liquid {.. } => {
+                        ElementKind::Liquid { .. } => {
                             if !self.move_down(x, y, rng) {
-                                if !self.move_down_side(x, y, rng){
+                                if !self.move_down_side(x, y, rng) {
                                     self.move_side(x, y, rng);
                                 }
                             }
@@ -177,26 +194,41 @@ impl GameWorld {
         // }
 
         // Sort moves by destination
-        self.moves.sort_unstable_by(|m1, m2| match m1 {
-            Move::MoveElement {
-                from_x: _,
-                from_y: _,
-                to_x,
-                to_y,
-            } => {
-                let (x1, y1) = (to_x, to_y);
-                match m2 {
-                    Move::MoveElement {
-                        from_x: _,
-                        from_y: _,
-                        to_x,
-                        to_y,
-                    } => match to_x.cmp(x1) {
-                        Ordering::Equal => to_y.cmp(y1),
-                        x => x,
-                    },
-                }
-            },
+        self.moves.sort_unstable_by(|m1, m2| {
+            let (x1, y1) = match m1 {
+                Move::MoveElement {
+                    from_x: _,
+                    from_y: _,
+                    to_x,
+                    to_y,
+                } => (to_x, to_y),
+                Move::SwapElement {
+                    from_x: _,
+                    from_y: _,
+                    to_x,
+                    to_y,
+                } => (to_x, to_y),
+            };
+            match m2 {
+                Move::MoveElement {
+                    from_x: _,
+                    from_y: _,
+                    to_x,
+                    to_y,
+                } => match to_x.cmp(x1) {
+                    Ordering::Equal => to_y.cmp(y1),
+                    x => x,
+                },
+                Move::SwapElement {
+                    from_x: _,
+                    from_y: _,
+                    to_x,
+                    to_y,
+                } => match to_x.cmp(x1) {
+                    Ordering::Equal => to_y.cmp(y1),
+                    x => x,
+                },
+            }
         });
 
         // Commit moves. If multiple moves into one single destination are possible, select a random one
@@ -222,6 +254,18 @@ impl GameWorld {
                         debug_assert_eq!(self.board[to_x][to_y], Element::None);
                         self.board[to_x][to_y] = self.board[from_x][from_y];
                         self.board[from_x][from_y] = Element::None;
+                    },
+                    Move::SwapElement {
+                        from_x,
+                        from_y,
+                        to_x,
+                        to_y,
+                    } => {
+                        debug_assert_ne!(self.board[from_x][from_y], Element::None);
+                        debug_assert_ne!(self.board[to_x][to_y], Element::None);
+                        let b = self.board[to_x][to_y];
+                        self.board[to_x][to_y] = self.board[from_x][from_y];
+                        self.board[from_x][from_y] = b;
                     },
                 }
                 prev_i = i + 1;

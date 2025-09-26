@@ -22,9 +22,9 @@ mod world;
 // const TICKS_PER_SECOND: usize = 120;
 
 // UI colors:
-const INACTIVE_BUTTON_BACKGROUND:[f32;4] = [0.2, 0.2, 0.2, 1.0];
-const ACTIVE_BUTTON_BACKGROUND:[f32;4] = [0.5, 0.5, 0.5, 1.0];
-const HOVERED_BUTTON_BACKGROUND:[f32;4] = [0.6, 0.6, 0.6, 1.0];
+const INACTIVE_BUTTON_BACKGROUND: [f32; 4] = [0.2, 0.2, 0.2, 1.0];
+const ACTIVE_BUTTON_BACKGROUND: [f32; 4] = [0.5, 0.5, 0.5, 1.0];
+const HOVERED_BUTTON_BACKGROUND: [f32; 4] = [0.6, 0.6, 0.6, 1.0];
 
 use crate::element::Element;
 use crate::ui::Ui;
@@ -132,7 +132,7 @@ fn main() -> Result<(), String> {
 
         let ui = imgui.frame();
         build_element_buttons(ui, &game_world, &mut current_elem);
-        build_top_settings_pane(ui,&mut game_world);
+        build_top_settings_pane(ui, &mut game_world);
 
         // Update the window graphics
         // Draw the new board to the window
@@ -155,10 +155,22 @@ fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element
     let buttonbar_width = (game_world.win_width - game_world.board_width) / 2 - 2;
     let win = ui
         .window("element_button_sidebar")
-        .size([buttonbar_width as f32, win_height - (game_world.win_height - game_world.board_height + 2) as f32], Condition::Always)
+        .size(
+            [
+                buttonbar_width as f32,
+                win_height - (game_world.win_height - game_world.board_height + 2) as f32,
+            ],
+            Condition::Always,
+        )
         .resizable(false)
         .movable(false)
-        .position([win_width - buttonbar_width as f32, (game_world.win_height - game_world.board_height) as f32 / 2. - 1.], Condition::Always)
+        .position(
+            [
+                win_width - buttonbar_width as f32,
+                (game_world.win_height - game_world.board_height) as f32 / 2. - 1.,
+            ],
+            Condition::Always,
+        )
         .movable(false)
         .collapsible(false)
         .title_bar(false);
@@ -167,7 +179,8 @@ fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element
             if e == Element::None {
                 continue;
             }
-            let hovercolor = ui.push_style_color(StyleColor::ButtonHovered, HOVERED_BUTTON_BACKGROUND);
+            let hovercolor =
+                ui.push_style_color(StyleColor::ButtonHovered, HOVERED_BUTTON_BACKGROUND);
             let bgcolor = if &e == selected {
                 ui.push_style_color(StyleColor::Button, ACTIVE_BUTTON_BACKGROUND)
             } else {
@@ -197,9 +210,10 @@ fn build_top_settings_pane(ui: &imgui::Ui, game_world: &mut Ui) {
         .title_bar(false);
     win.build(|| {
         ui.text("Cursor:");
-        for e in [1,2,3,4,5,10,15,20] {
+        for e in [1, 2, 3, 4, 5, 10, 15, 20] {
             ui.same_line();
-            let hovercolor = ui.push_style_color(StyleColor::ButtonHovered, HOVERED_BUTTON_BACKGROUND);
+            let hovercolor =
+                ui.push_style_color(StyleColor::ButtonHovered, HOVERED_BUTTON_BACKGROUND);
             let bgcolor = if e == game_world.cursor_size() {
                 ui.push_style_color(StyleColor::Button, ACTIVE_BUTTON_BACKGROUND)
             } else {

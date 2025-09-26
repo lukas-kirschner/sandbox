@@ -46,7 +46,7 @@ impl Ui {
             win_height: height,
             board_width: width - 120,
             board_height: height - 80,
-            cursor_size: 3
+            cursor_size: 3,
         }
     }
     /// Draw the window content

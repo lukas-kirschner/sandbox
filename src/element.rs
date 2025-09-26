@@ -11,18 +11,26 @@ pub enum Element {
 pub enum ElementKind {
     None,
     Solid,
-    Powder { density: f32 },
-    Liquid { density: f32 },
-    Gas { density: f32 },
+    Powder {
+        /// The density in kg/m³
+        density: f32,
+    },
+    Liquid {
+        // The density in kg/m³
+        density: f32,
+    },
+    Gas {
+        density: f32,
+    },
 }
 
 impl Element {
     pub fn kind(&self) -> ElementKind {
         match self {
             Element::None => ElementKind::None,
-            Element::Sand => ElementKind::Powder { density: 1.0 },
+            Element::Sand => ElementKind::Powder { density: 1700.0 },
             Element::BrickWall => ElementKind::Solid,
-            Element::Water => ElementKind::Liquid { density: 1.0 },
+            Element::Water => ElementKind::Liquid { density: 1000.0 },
         }
     }
 }
