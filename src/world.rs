@@ -98,6 +98,35 @@ impl GameWorld {
         }
         false
     }
+    /// Try to push a 'move side' to the moves vector and return true if that succeeded.
+    fn move_side(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
+            let mut left = x > 0 && self.board[x - 1][y] == Element::None;
+            let mut right =
+                x < (self.board.len() - 1) && self.board[x + 1][y] == Element::None;
+            if left && right {
+                left = rng.random_bool(0.5);
+                right = !left;
+            }
+            if left {
+                self.moves.push(Move::MoveElement {
+                    from_x: x,
+                    from_y: y,
+                    to_x: x - 1,
+                    to_y: y,
+                });
+                return true;
+            }
+            if right {
+                self.moves.push(Move::MoveElement {
+                    from_x: x,
+                    from_y: y,
+                    to_x: x + 1,
+                    to_y: y,
+                });
+                return true;
+            }
+        false
+    }
     /// Tick (Calculate the next iteration of this board in-place)
     pub fn tick(&mut self, rng: &mut dyn RngCore) {
         self.moves.clear();
@@ -116,7 +145,13 @@ impl GameWorld {
                                 self.move_down_side(x, y, rng);
                             }
                         },
-                        ElementKind::Liquid { .. } => {},
+                        ElementKind::Liquid {.. } => {
+                            if !self.move_down(x, y, rng) {
+                                if !self.move_down_side(x, y, rng){
+                                    self.move_side(x, y, rng);
+                                }
+                            }
+                        },
                         ElementKind::Gas { .. } => {},
                     }
                 }

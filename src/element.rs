@@ -3,8 +3,9 @@ use strum_macros::EnumIter;
 #[derive(Copy, Clone, Eq, PartialEq, Debug, EnumIter)]
 pub enum Element {
     None,
-    Sand,
     BrickWall,
+    Sand,
+    Water,
 }
 
 pub enum ElementKind {
@@ -21,6 +22,7 @@ impl Element {
             Element::None => ElementKind::None,
             Element::Sand => ElementKind::Powder { density: 1.0 },
             Element::BrickWall => ElementKind::Solid,
+            Element::Water => ElementKind::Liquid { density: 1.0 },
         }
     }
 }
@@ -34,6 +36,7 @@ impl Display for Element {
                 Element::None => "Air",
                 Element::Sand => "Sand",
                 Element::BrickWall => "Wall",
+                Element::Water => "Water",
             }
         )
     }
