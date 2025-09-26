@@ -173,8 +173,12 @@ fn main() -> Result<(), String> {
         // Update the window graphics
         // Draw the new board to the window
         game_world.draw(&mut canvas, &mut texture, &world)?;
+        unsafe{ gl::Flush() };
+        canvas.window_mut().gl_make_current(&_gl_context);
         imgui_sdl.prepare_render(&ui, canvas.window());
         renderer.render(&mut imgui);
+        // Flush the GL buffer. Workaround for white windows
+        unsafe{ gl::Flush() };
         canvas.present();
         // canvas.window().gl_swap_window();
     }
@@ -183,7 +187,8 @@ fn main() -> Result<(), String> {
 
 fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui) {
     let [win_width, win_height] = ui.io().display_size;
-    let buttonbar_width = (game_world.win_width - game_world.board_width) / 2;
+    // Border width 1px
+    let buttonbar_width = (game_world.win_width - game_world.board_width) / 2 - 2;
     let win = ui
         .window("element_button_sidebar")
         .size([buttonbar_width as f32, win_height], Condition::Always)
