@@ -80,12 +80,12 @@ impl Ui {
             |pixel_data, _pitch| {
                 for y in 0..self.board_height {
                     for x in 0..self.board_width {
-                        pixel_data[((y * self.board_width) + x) * 4] = 0xff;
-                        pixel_data[((y * self.board_width) + x) * 4 + 1] =
-                            world.board()[x][y].color().r;
+                        pixel_data[((y * self.board_width) + x) * 4 + 3] = 0xff;
                         pixel_data[((y * self.board_width) + x) * 4 + 2] =
+                            world.board()[x][y].color().r;
+                        pixel_data[((y * self.board_width) + x) * 4 + 1] =
                             world.board()[x][y].color().g;
-                        pixel_data[((y * self.board_width) + x) * 4 + 3] =
+                        pixel_data[((y * self.board_width) + x) * 4 + 0] =
                             world.board()[x][y].color().b;
                     }
                 }

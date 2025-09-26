@@ -147,7 +147,7 @@ fn main() -> Result<(), String> {
                     mousestate, x, y, ..
                 } => {
                     if mousestate.is_mouse_button_pressed(MouseButton::Left) {
-                        world.insert_element_at(&game_world, x, y, Element::Sand);
+                        world.insert_element_at(&game_world, x, y, current_elem);
                     } else if mousestate.is_mouse_button_pressed(MouseButton::Right) {
                         // Delete the element at the given position
                         world.insert_element_at(&game_world, x, y, Element::None);
@@ -205,13 +205,18 @@ fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element
             if e == Element::None {
                 continue;
             }
+            let hovercolor = ui.push_style_color(StyleColor::ButtonHovered, [0.6, 0.6, 0.6, 1.0]);
             let bgcolor = if &e == selected {
-                ui.push_style_color(StyleColor::Button, [0.6, 0.6, 0.6, 1.0])
+                ui.push_style_color(StyleColor::Button, [0.5, 0.5, 0.5, 1.0])
             } else {
                 ui.push_style_color(StyleColor::Button, [0.2, 0.2, 0.2, 1.0])
             };
             ui.button(format!("{:?}", e));
+            if ui.is_item_clicked(){
+                *selected = e;
+            }
             bgcolor.pop();
+            hovercolor.pop()
         }
     });
 }

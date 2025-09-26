@@ -3,4 +3,5 @@ use strum_macros::EnumIter;
 pub enum Element {
     None,
     Sand,
+    BrickWall
 }
