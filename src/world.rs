@@ -1,7 +1,7 @@
 use crate::element::{Element, ElementKind};
 use crate::ui::Ui;
 use rand::{Rng, RngCore};
-use std::cmp::{max, min, Ordering, PartialEq};
+use std::cmp::{Ordering, max, min};
 
 enum Move {
     /// Move the source element to the empty target location
@@ -92,7 +92,7 @@ impl GameWorld {
             let other_density = self.board[x][y + 1].density();
             if let Some(a) = my_density {
                 if let Some(b) = other_density {
-                    let dens_q = b/a; // Density Quotient
+                    let dens_q = b / a; // Density Quotient
                     if dens_q < 1. {
                         if rng.random_bool(1. - dens_q as f64) {
                             self.moves.push(Move::SwapElement {
@@ -136,6 +136,71 @@ impl GameWorld {
                     to_y: y + 1,
                 });
                 return true;
+            }
+        }
+        false
+    }
+    /// Try to push a 'swap down side' to the moves vector and return true if that succeeded.
+    fn swap_down_side(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
+        // Make down-side swaps a little less probable:
+        let prob_quot = 0.75;
+        if y < (self.board[0].len() - 1) {
+            let my_density = self.board[x][y].density();
+            let mut density_down_left = if x == 0 {
+                None
+            } else {
+                self.board[x - 1][y + 1].density()
+            };
+            let mut density_down_right = if x == (self.board.len() - 1) {
+                None
+            } else {
+                self.board[x + 1][y + 1].density()
+            };
+            if let Some(a) = my_density {
+                if let Some(b) = density_down_right
+                    && b >= a
+                {
+                    density_down_right = None;
+                }
+                if let Some(b) = density_down_left
+                    && b >= a
+                {
+                    density_down_left = None;
+                }
+                if density_down_left.is_some() && density_down_right.is_some() {
+                    let left = rng.random_bool(0.5);
+                    if left {
+                        density_down_right = None;
+                    } else {
+                        density_down_left = None;
+                    }
+                }
+                if let Some(b) = density_down_left {
+                    let density_quot = b / a;
+                    debug_assert!(density_quot < 1.);
+                    if rng.random_bool((1. - density_quot) as f64 * prob_quot) {
+                        self.moves.push(Move::SwapElement {
+                            from_x: x,
+                            from_y: y,
+                            to_x: x - 1,
+                            to_y: y + 1,
+                        });
+                        return true;
+                    }
+                }
+                if let Some(b) = density_down_right {
+                    let density_quot = b / a;
+                    debug_assert!(density_quot < 1.);
+                    if rng.random_bool((1. - density_quot) as f64 * prob_quot) {
+                        self.moves.push(Move::SwapElement {
+                            from_x: x,
+                            from_y: y,
+                            to_x: x + 1,
+                            to_y: y + 1,
+                        });
+                        return true;
+                    }
+                }
             }
         }
         false
@@ -185,7 +250,7 @@ impl GameWorld {
                             if !self.move_down(x, y, rng) {
                                 if !self.move_down_side(x, y, rng) {
                                     if !self.swap_down(x, y, rng) {
-                                        // self.swap_down_side(x, y, rng);
+                                        self.swap_down_side(x, y, rng);
                                     }
                                 }
                             }
@@ -197,7 +262,7 @@ impl GameWorld {
                                 }
                             }
                         },
-                        ElementKind::Gas { .. } => {},
+                        // ElementKind::Gas { .. } => {},
                     }
                 }
             }

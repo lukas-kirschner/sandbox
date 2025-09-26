@@ -20,9 +20,9 @@ pub enum ElementKind {
         // The density in kg/m³
         density: f32,
     },
-    Gas {
-        density: f32,
-    },
+    // Gas {
+    //     density: f32,
+    // },
 }
 
 impl Element {
@@ -40,7 +40,7 @@ impl Element {
             ElementKind::Solid => None,
             ElementKind::Powder { density } => Some(density),
             ElementKind::Liquid { density } => Some(density),
-            ElementKind::Gas { density } => Some(density),
+            // ElementKind::Gas { density } => Some(density),
         }
     }
 }
