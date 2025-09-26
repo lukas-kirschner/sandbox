@@ -88,6 +88,10 @@ impl GameWorld {
     /// Try to push a 'swap down' to the moves vector and return true if that succeeded.
     fn swap_down(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
         if y < (self.board[0].len() - 1) {
+            // Only enable swaps if the bottom element is a liquid or gas!
+            if !self.board[x][y + 1].is_liquid_or_gas() {
+                return false;
+            }
             let my_density = self.board[x][y].density();
             let other_density = self.board[x][y + 1].density();
             if let Some(a) = my_density {
@@ -146,16 +150,17 @@ impl GameWorld {
         let prob_quot = 0.75;
         if y < (self.board[0].len() - 1) {
             let my_density = self.board[x][y].density();
-            let mut density_down_left = if x == 0 {
+            let mut density_down_left = if x == 0 || !self.board[x - 1][y + 1].is_liquid_or_gas() {
                 None
             } else {
                 self.board[x - 1][y + 1].density()
             };
-            let mut density_down_right = if x == (self.board.len() - 1) {
-                None
-            } else {
-                self.board[x + 1][y + 1].density()
-            };
+            let mut density_down_right =
+                if x == (self.board.len() - 1) || !self.board[x + 1][y + 1].is_liquid_or_gas() {
+                    None
+                } else {
+                    self.board[x + 1][y + 1].density()
+                };
             if let Some(a) = my_density {
                 if let Some(b) = density_down_right
                     && b >= a

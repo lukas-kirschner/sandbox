@@ -5,6 +5,7 @@ pub enum Element {
     None,
     BrickWall,
     Sand,
+    Salt,
     Water,
 }
 
@@ -32,6 +33,7 @@ impl Element {
             Element::Sand => ElementKind::Powder { density: 1700.0 },
             Element::BrickWall => ElementKind::Solid,
             Element::Water => ElementKind::Liquid { density: 1000.0 },
+            Element::Salt => ElementKind::Powder { density: 2170.0 },
         }
     }
     pub fn density(&self) -> Option<f32> {
@@ -40,6 +42,16 @@ impl Element {
             ElementKind::Solid => None,
             ElementKind::Powder { density } => Some(density),
             ElementKind::Liquid { density } => Some(density),
+            // ElementKind::Gas { density } => Some(density),
+        }
+    }
+    /// Whether the given element is a liquid or a gas, i.e., whether the element can swap its position with other elements
+    pub fn is_liquid_or_gas(&self) -> bool {
+        match self.kind() {
+            ElementKind::None => false,
+            ElementKind::Solid => false,
+            ElementKind::Powder { .. } => false,
+            ElementKind::Liquid { .. } => true,
             // ElementKind::Gas { density } => Some(density),
         }
     }
@@ -55,6 +67,7 @@ impl Display for Element {
                 Element::Sand => "Sand",
                 Element::BrickWall => "Wall",
                 Element::Water => "Water",
+                Element::Salt => "Salt",
             }
         )
     }

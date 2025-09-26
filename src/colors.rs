@@ -6,6 +6,7 @@ pub const BOARD_BACKGROUND_COLOR: Color = Color::RGB(20, 0, 60);
 pub const SAND_COLOR: Color = Color::RGB(0xda, 0xca, 0xb3);
 pub const BRICK_WALL_COLOR: Color = Color::RGB(0x8c, 0x3d, 0x20);
 pub const WATER_COLOR: Color = Color::RGB(0x05, 0xaf, 0xf2);
+pub const SALT_COLOR: Color = Color::RGB(0xd7, 0xd7, 0xd9);
 impl Element {
     pub fn color(&self) -> Color {
         match self {
@@ -13,6 +14,7 @@ impl Element {
             Element::Sand => SAND_COLOR,
             Element::BrickWall => BRICK_WALL_COLOR,
             Element::Water => WATER_COLOR,
+            Element::Salt => SALT_COLOR,
         }
     }
 }
