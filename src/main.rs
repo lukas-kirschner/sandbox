@@ -18,8 +18,8 @@ mod colors;
 mod element;
 mod ui;
 mod world;
-/// How fast the simulation runs, independently of framerate
-const TICKS_PER_SECOND: usize = 120;
+// /// How fast the simulation runs, independently of framerate
+// const TICKS_PER_SECOND: usize = 120;
 
 use crate::element::Element;
 use crate::ui::Ui;
@@ -35,50 +35,6 @@ use std::time::Instant;
 use strum::IntoEnumIterator;
 
 pub const FONT_SIZE: f32 = 13.0;
-
-/// Creates the imgui context. Stolen from https://github.com/imgui-rs/imgui-examples/blob/main/examples/support/mod.rs
-// pub fn create_context() -> imgui::Context {
-//     let mut imgui = Context::create();
-//     // Fixed font size. Note imgui_winit_support uses "logical
-//     // pixels", which are physical pixels scaled by the devices
-//     // scaling factor. Meaning, 13.0 pixels should look the same size
-//     // on two different screens, and thus we do not need to scale this
-//     // value (as the scaling is handled by winit)
-//     imgui.fonts().add_font(&[
-//         FontSource::TtfData {
-//             data: include_bytes!("../../resources/Roboto-Regular.ttf"),
-//             size_pixels: FONT_SIZE,
-//             config: Some(FontConfig {
-//                 // As imgui-glium-renderer isn't gamma-correct with
-//                 // it's font rendering, we apply an arbitrary
-//                 // multiplier to make the font a bit "heavier". With
-//                 // default imgui-glow-renderer this is unnecessary.
-//                 rasterizer_multiply: 1.5,
-//                 // Oversampling font helps improve text rendering at
-//                 // expense of larger font atlas texture.
-//                 oversample_h: 4,
-//                 oversample_v: 4,
-//                 ..FontConfig::default()
-//             }),
-//         },
-//         FontSource::TtfData {
-//             data: include_bytes!("../../resources/mplus-1p-regular.ttf"),
-//             size_pixels: FONT_SIZE,
-//             config: Some(FontConfig {
-//                 // Oversampling font helps improve text rendering at
-//                 // expense of larger font atlas texture.
-//                 oversample_h: 4,
-//                 oversample_v: 4,
-//                 // Range of glyphs to rasterize
-//                 glyph_ranges: FontGlyphRanges::japanese(),
-//                 ..FontConfig::default()
-//             }),
-//         },
-//     ]);
-//     imgui.set_ini_filename(None);
-//
-//     imgui
-// }
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -170,14 +126,14 @@ fn main() -> Result<(), String> {
         world.tick(&mut rng);
 
         let ui = imgui.frame();
-        build_element_buttons(&ui, &game_world, &mut current_elem);
+        build_element_buttons(ui, &game_world, &mut current_elem);
 
         // Update the window graphics
         // Draw the new board to the window
         game_world.draw(&mut canvas, &mut texture, &world)?;
         unsafe { gl::Flush() };
-        canvas.window_mut().gl_make_current(&_gl_context);
-        imgui_sdl.prepare_render(&ui, canvas.window());
+        canvas.window_mut().gl_make_current(&_gl_context)?;
+        imgui_sdl.prepare_render(ui, canvas.window());
         renderer.render(&mut imgui);
         // Flush the GL buffer. Workaround for white windows
         unsafe { gl::Flush() };
@@ -212,7 +168,7 @@ fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element
                 ui.push_style_color(StyleColor::Button, [0.2, 0.2, 0.2, 1.0])
             };
             ui.button(format!("{:?}", e));
-            if ui.is_item_clicked(){
+            if ui.is_item_clicked() {
                 *selected = e;
             }
             bgcolor.pop();

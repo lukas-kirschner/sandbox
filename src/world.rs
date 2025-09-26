@@ -1,4 +1,4 @@
-use crate::element::Element;
+use crate::element::{Element, ElementKind};
 use crate::ui::Ui;
 use rand::{Rng, RngCore};
 use std::cmp::{Ordering, max, min};
@@ -108,10 +108,16 @@ impl GameWorld {
                 // new_board[x][y] = self.board[x][y];
                 // Gravity
                 if y != height - 1 {
-                    if self.board[x][y] != Element::None {
-                        if !self.move_down(x, y, rng) {
-                            self.move_down_side(x, y, rng);
-                        }
+                    match self.board[x][y].kind() {
+                        ElementKind::None => {},
+                        ElementKind::Solid => {},
+                        ElementKind::Powder { .. } => {
+                            if !self.move_down(x, y, rng) {
+                                self.move_down_side(x, y, rng);
+                            }
+                        },
+                        ElementKind::Liquid { .. } => {},
+                        ElementKind::Gas { .. } => {},
                     }
                 }
             }

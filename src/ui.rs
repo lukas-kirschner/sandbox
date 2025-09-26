@@ -85,7 +85,7 @@ impl Ui {
                             world.board()[x][y].color().r;
                         pixel_data[((y * self.board_width) + x) * 4 + 1] =
                             world.board()[x][y].color().g;
-                        pixel_data[((y * self.board_width) + x) * 4 + 0] =
+                        pixel_data[((y * self.board_width) + x) * 4] =
                             world.board()[x][y].color().b;
                     }
                 }
