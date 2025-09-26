@@ -24,7 +24,7 @@ const TICKS_PER_SECOND: usize = 120;
 use crate::element::Element;
 use crate::ui::Ui;
 use crate::world::GameWorld;
-use imgui::Condition;
+use imgui::{Condition, StyleColor};
 use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
 use sdl2::event::Event;
@@ -32,6 +32,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::mouse::MouseButton;
 use sdl2::pixels::PixelFormatEnum;
 use std::time::Instant;
+use strum::IntoEnumIterator;
 
 pub const FONT_SIZE: f32 = 13.0;
 
@@ -126,6 +127,7 @@ fn main() -> Result<(), String> {
         )
         .unwrap();
     let mut rng = XorShiftRng::seed_from_u64(0);
+    let mut current_elem = Element::Sand;
     let mut event_pump = sdl_context.event_pump()?;
     let mut last_frame = Instant::now();
     'running: loop {
@@ -168,24 +170,24 @@ fn main() -> Result<(), String> {
         world.tick(&mut rng);
 
         let ui = imgui.frame();
-        build_element_buttons(&ui, &game_world);
+        build_element_buttons(&ui, &game_world, &mut current_elem);
 
         // Update the window graphics
         // Draw the new board to the window
         game_world.draw(&mut canvas, &mut texture, &world)?;
-        unsafe{ gl::Flush() };
+        unsafe { gl::Flush() };
         canvas.window_mut().gl_make_current(&_gl_context);
         imgui_sdl.prepare_render(&ui, canvas.window());
         renderer.render(&mut imgui);
         // Flush the GL buffer. Workaround for white windows
-        unsafe{ gl::Flush() };
+        unsafe { gl::Flush() };
         canvas.present();
         // canvas.window().gl_swap_window();
     }
     Ok(())
 }
 
-fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui) {
+fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element) {
     let [win_width, win_height] = ui.io().display_size;
     // Border width 1px
     let buttonbar_width = (game_world.win_width - game_world.board_width) / 2 - 2;
@@ -194,11 +196,22 @@ fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui) {
         .size([buttonbar_width as f32, win_height], Condition::Always)
         .resizable(false)
         .movable(false)
-        .position([win_width - buttonbar_width as f32,0.0], Condition::Always)
+        .position([win_width - buttonbar_width as f32, 0.0], Condition::Always)
         .movable(false)
         .collapsible(false)
         .title_bar(false);
     win.build(|| {
-        ui.button("Sand");
+        for e in Element::iter() {
+            if e == Element::None {
+                continue;
+            }
+            let bgcolor = if &e == selected {
+                ui.push_style_color(StyleColor::Button, [0.6, 0.6, 0.6, 1.0])
+            } else {
+                ui.push_style_color(StyleColor::Button, [0.2, 0.2, 0.2, 1.0])
+            };
+            ui.button(format!("{:?}", e));
+            bgcolor.pop();
+        }
     });
 }
