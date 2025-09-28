@@ -243,11 +243,15 @@ impl GameWorld {
         self.moves.clear();
         let height = self.board[0].len();
         let width = self.board.len();
+
+        // First, perform a 'Transmute' pass! This will transmute all applicable elements in-place
         for y in 0..height {
             for x in 0..width {
                 self.transmute(x, y, rng);
             }
         }
+
+        // Then, collect and perform all moves:
         for y in 0..height {
             for x in 0..width {
                 // new_board[x][y] = self.board[x][y];

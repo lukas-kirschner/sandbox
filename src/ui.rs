@@ -49,7 +49,7 @@ impl Ui {
         Self {
             win_width: width,
             win_height: height,
-            board_width: width - 120,
+            board_width: width - 240,
             board_height: height - 80,
             cursor_size: 3,
             scaling_factor,
