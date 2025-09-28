@@ -1,7 +1,7 @@
-use crate::element::{Element, ElementKind};
+use crate::element::{Element, ElementKind, AIR_DENSITY};
 use crate::ui::Ui;
 use rand::{Rng, RngCore};
-use std::cmp::{Ordering, max, min};
+use std::cmp::{max, min, Ordering};
 mod transmute;
 enum Move {
     /// Move the source element to the empty target location
@@ -72,18 +72,47 @@ impl GameWorld {
     }
     /// Try to push a 'move down' to the moves vector and return true if that succeeded.
     fn move_down(&mut self, x: usize, y: usize, _rng: &mut dyn RngCore) -> bool {
-        if y < (self.board[0].len() - 1) {
-            if self.board[x][y + 1] == Element::None {
-                self.moves.push(Move::MoveElement {
-                    from_x: x,
-                    from_y: y,
-                    to_x: x,
-                    to_y: y + 1,
-                });
-                return true;
-            }
+        match self.board[x][y].density() {
+            None => false,
+            Some(density) => {
+                if density > AIR_DENSITY {
+                    if y < (self.board[0].len() - 1) {
+                        if self.board[x][y + 1] == Element::None {
+                            self.moves.push(Move::MoveElement {
+                                from_x: x,
+                                from_y: y,
+                                to_x: x,
+                                to_y: y + 1,
+                            });
+                            true
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                } else if density <= AIR_DENSITY {
+                    // The element is a gas or something with less density than air! Try to move up:
+                    if y > 0 {
+                        if self.board[x][y - 1] == Element::None {
+                            self.moves.push(Move::MoveElement {
+                                from_x: x,
+                                from_y: y,
+                                to_x: x,
+                                to_y: y - 1,
+                            });
+                            true
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
+            },
         }
-        false
     }
     /// Try to push a 'swap down' to the moves vector and return true if that succeeded.
     fn swap_down(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
@@ -115,34 +144,76 @@ impl GameWorld {
     }
     /// Try to push a 'move down side' to the moves vector and return true if that succeeded.
     fn move_down_side(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
-        if y < (self.board[0].len() - 1) {
-            let mut down_left = x > 0 && self.board[x - 1][y + 1] == Element::None;
-            let mut down_right =
-                x < (self.board.len() - 1) && self.board[x + 1][y + 1] == Element::None;
-            if down_left && down_right {
-                down_left = rng.random_bool(0.5);
-                down_right = !down_left;
-            }
-            if down_left {
-                self.moves.push(Move::MoveElement {
-                    from_x: x,
-                    from_y: y,
-                    to_x: x - 1,
-                    to_y: y + 1,
-                });
-                return true;
-            }
-            if down_right {
-                self.moves.push(Move::MoveElement {
-                    from_x: x,
-                    from_y: y,
-                    to_x: x + 1,
-                    to_y: y + 1,
-                });
-                return true;
-            }
+        match self.board[x][y].density() {
+            None => false,
+            Some(density) => {
+                if density > AIR_DENSITY {
+                    if y < (self.board[0].len() - 1) {
+                        let mut down_left = x > 0 && self.board[x - 1][y + 1] == Element::None;
+                        let mut down_right =
+                            x < (self.board.len() - 1) && self.board[x + 1][y + 1] == Element::None;
+                        if down_left && down_right {
+                            down_left = rng.random_bool(0.5);
+                            down_right = !down_left;
+                        }
+                        if down_left {
+                            self.moves.push(Move::MoveElement {
+                                from_x: x,
+                                from_y: y,
+                                to_x: x - 1,
+                                to_y: y + 1,
+                            });
+                            return true;
+                        }
+                        if down_right {
+                            self.moves.push(Move::MoveElement {
+                                from_x: x,
+                                from_y: y,
+                                to_x: x + 1,
+                                to_y: y + 1,
+                            });
+                            return true;
+                        }
+                        return false;
+                    } else {
+                        false
+                    }
+                } else if density < AIR_DENSITY {
+                    if y > 0 {
+                        let mut up_left = x > 0 && self.board[x - 1][y - 1] == Element::None;
+                        let mut up_right =
+                            x < (self.board.len() - 1) && self.board[x + 1][y - 1] == Element::None;
+                        if up_left && up_right {
+                            up_left = rng.random_bool(0.5);
+                            up_right = !up_left;
+                        }
+                        if up_left {
+                            self.moves.push(Move::MoveElement {
+                                from_x: x,
+                                from_y: y,
+                                to_x: x - 1,
+                                to_y: y - 1,
+                            });
+                            return true;
+                        }
+                        if up_right {
+                            self.moves.push(Move::MoveElement {
+                                from_x: x,
+                                from_y: y,
+                                to_x: x + 1,
+                                to_y: y - 1,
+                            });
+                            return true;
+                        }
+                        return false;
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
+            },
         }
-        false
     }
     /// Try to push a 'swap down side' to the moves vector and return true if that succeeded.
     fn swap_down_side(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
@@ -254,7 +325,6 @@ impl GameWorld {
         // Then, collect and perform all moves:
         for y in 0..height {
             for x in 0..width {
-                // new_board[x][y] = self.board[x][y];
                 // Gravity
                 if y != height - 1 {
                     match self.board[x][y].kind() {
@@ -280,7 +350,13 @@ impl GameWorld {
                                 }
                             }
                         },
-                        // ElementKind::Gas { .. } => {},
+                        ElementKind::Gas { .. } => {
+                            if !self.move_down(x, y, rng) {
+                                if !self.move_side(x, y, rng) {
+                                    self.move_down_side(x, y, rng);
+                                }
+                            }
+                        },
                     }
                 }
             }

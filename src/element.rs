@@ -1,5 +1,7 @@
 use std::fmt::{Display, Formatter};
 use strum_macros::EnumIter;
+
+pub const AIR_DENSITY: f32 = 1.2754;
 #[derive(Copy, Clone, Eq, PartialEq, Debug, EnumIter)]
 pub enum Element {
     None,
@@ -9,6 +11,7 @@ pub enum Element {
     Water,
     SaltWater,
     WaterSource,
+    Steam,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -23,9 +26,9 @@ pub enum ElementKind {
         // The density in kg/m³
         density: f32,
     },
-    // Gas {
-    //     density: f32,
-    // },
+    Gas {
+        density: f32,
+    },
 }
 
 impl Element {
@@ -38,6 +41,7 @@ impl Element {
             Element::SaltWater => ElementKind::Liquid { density: 1027.0 },
             Element::Salt => ElementKind::Powder { density: 2170.0 },
             Element::WaterSource => ElementKind::Solid,
+            Element::Steam => ElementKind::Gas {density: 0.6}
         }
     }
     pub fn density(&self) -> Option<f32> {
@@ -46,7 +50,7 @@ impl Element {
             ElementKind::Solid => None,
             ElementKind::Powder { density } => Some(density),
             ElementKind::Liquid { density } => Some(density),
-            // ElementKind::Gas { density } => Some(density),
+            ElementKind::Gas { density } => Some(density),
         }
     }
     /// Whether the given element is a liquid or a gas, i.e., whether the element can swap its position with other elements
@@ -56,7 +60,7 @@ impl Element {
             ElementKind::Solid => false,
             ElementKind::Powder { .. } => false,
             ElementKind::Liquid { .. } => true,
-            // ElementKind::Gas { density } => Some(density),
+            ElementKind::Gas { .. } => true,
         }
     }
 }
@@ -74,6 +78,7 @@ impl Display for Element {
                 Element::SaltWater => "Saltwater",
                 Element::Salt => "Salt",
                 Element::WaterSource => "Water Source",
+                Element::Steam => "Steam",
             }
         )
     }

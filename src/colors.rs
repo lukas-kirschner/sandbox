@@ -9,6 +9,7 @@ pub const WATER_COLOR: Color = Color::RGB(0x05, 0xaf, 0xf2);
 pub const SALT_WATER_COLOR: Color = Color::RGB(0x04, 0x9f, 0xc0);
 pub const SALT_COLOR: Color = Color::RGB(0xd7, 0xd7, 0xd9);
 pub const WATER_SOURCE_COLOR: Color = Color::RGB(0x9c, 0xad, 0xbc);
+pub const STEAM_COLOR: Color = Color::RGB(0xee, 0xee, 0xff);
 impl Element {
     pub fn color(&self) -> Color {
         match self {
@@ -19,6 +20,7 @@ impl Element {
             Element::SaltWater => SALT_WATER_COLOR,
             Element::Salt => SALT_COLOR,
             Element::WaterSource => WATER_SOURCE_COLOR,
+            Element::Steam => STEAM_COLOR,
         }
     }
 }
