@@ -8,6 +8,7 @@ pub enum Element {
     Salt,
     Water,
     SaltWater,
+    WaterSource,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -36,6 +37,7 @@ impl Element {
             Element::Water => ElementKind::Liquid { density: 997.0 },
             Element::SaltWater => ElementKind::Liquid { density: 1027.0 },
             Element::Salt => ElementKind::Powder { density: 2170.0 },
+            Element::WaterSource => ElementKind::Solid,
         }
     }
     pub fn density(&self) -> Option<f32> {
@@ -71,6 +73,7 @@ impl Display for Element {
                 Element::Water => "Water",
                 Element::SaltWater => "Saltwater",
                 Element::Salt => "Salt",
+                Element::WaterSource => "Water Source",
             }
         )
     }

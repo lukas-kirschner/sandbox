@@ -27,6 +27,15 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
         },
         Element::Water => Transmutation::None,
         Element::SaltWater => Transmutation::None,
+        Element::WaterSource => match b {
+            // Water Source spawns water
+            Element::None => Transmutation::WithProbability {
+                probability: 0.015,
+                outcome_a: Some(Element::WaterSource),
+                outcome_b: Some(Element::Water),
+            },
+            _ => Transmutation::None,
+        },
     }
 }
 
