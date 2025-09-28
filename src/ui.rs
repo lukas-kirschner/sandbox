@@ -11,7 +11,7 @@ pub struct Ui {
     /// Board height in pixels
     pub board_height: usize,
     cursor_size: i32,
-    pub(crate) scaling_factor: usize
+    pub(crate) scaling_factor: usize,
 }
 
 impl Ui {
@@ -30,8 +30,10 @@ impl Ui {
         window_y: i32,
     ) -> Option<(i32, i32)> {
         let ret = (
-            (window_x - (self.win_width - self.board_width) as i32 / 2) / self.scaling_factor as i32,
-            (window_y - (self.win_height - self.board_height) as i32 / 2) / self.scaling_factor as i32,
+            (window_x - (self.win_width - self.board_width) as i32 / 2)
+                / self.scaling_factor as i32,
+            (window_y - (self.win_height - self.board_height) as i32 / 2)
+                / self.scaling_factor as i32,
         );
         if ret.0 < 0
             || ret.1 < 0
@@ -43,14 +45,14 @@ impl Ui {
             Some(ret)
         }
     }
-    pub fn new(width: usize, height: usize, scaling_factor:usize) -> Self {
+    pub fn new(width: usize, height: usize, scaling_factor: usize) -> Self {
         Self {
             win_width: width,
             win_height: height,
             board_width: width - 120,
             board_height: height - 80,
             cursor_size: 3,
-            scaling_factor
+            scaling_factor,
         }
     }
     /// Draw the window content
@@ -92,8 +94,8 @@ impl Ui {
             |pixel_data, _pitch| {
                 for board_y in 0..self.board_height / self.scaling_factor {
                     for board_x in 0..self.board_width / self.scaling_factor {
-                        for x_scf in 0..self.scaling_factor{
-                            for y_scf in 0..self.scaling_factor{
+                        for x_scf in 0..self.scaling_factor {
+                            for y_scf in 0..self.scaling_factor {
                                 let win_x = board_x * self.scaling_factor + x_scf;
                                 let win_y = board_y * self.scaling_factor + y_scf;
                                 pixel_data[((win_y * self.board_width) + win_x) * 4 + 3] = 0xff;

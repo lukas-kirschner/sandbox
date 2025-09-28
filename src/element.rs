@@ -7,6 +7,7 @@ pub enum Element {
     Sand,
     Salt,
     Water,
+    SaltWater,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -32,7 +33,8 @@ impl Element {
             Element::None => ElementKind::None,
             Element::Sand => ElementKind::Powder { density: 1700.0 },
             Element::BrickWall => ElementKind::Solid,
-            Element::Water => ElementKind::Liquid { density: 1000.0 },
+            Element::Water => ElementKind::Liquid { density: 997.0 },
+            Element::SaltWater => ElementKind::Liquid { density: 1027.0 },
             Element::Salt => ElementKind::Powder { density: 2170.0 },
         }
     }
@@ -67,6 +69,7 @@ impl Display for Element {
                 Element::Sand => "Sand",
                 Element::BrickWall => "Wall",
                 Element::Water => "Water",
+                Element::SaltWater => "Saltwater",
                 Element::Salt => "Salt",
             }
         )

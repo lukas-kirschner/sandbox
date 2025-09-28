@@ -49,7 +49,7 @@ fn main() -> Result<(), String> {
         gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
         gl_attr.set_context_version(3, 0);
     }
-    let mut game_world = Ui::new(1800, 960, 2);
+    let mut game_world = Ui::new(1800, 960, 4);
     let window = video_subsystem
         .window(
             "Sandbox",
@@ -78,7 +78,11 @@ fn main() -> Result<(), String> {
         .accelerated()
         .build()
         .map_err(|e| e.to_string())?;
-    let mut world: GameWorld = GameWorld::new(game_world.board_width, game_world.board_height, game_world.scaling_factor);
+    let mut world: GameWorld = GameWorld::new(
+        game_world.board_width,
+        game_world.board_height,
+        game_world.scaling_factor,
+    );
     let creator = canvas.texture_creator();
     let mut texture = creator
         .create_texture_streaming(

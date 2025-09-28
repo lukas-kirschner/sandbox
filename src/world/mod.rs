@@ -2,7 +2,7 @@ use crate::element::{Element, ElementKind};
 use crate::ui::Ui;
 use rand::{Rng, RngCore};
 use std::cmp::{Ordering, max, min};
-
+mod transmute;
 enum Move {
     /// Move the source element to the empty target location
     MoveElement {
@@ -245,6 +245,11 @@ impl GameWorld {
         let width = self.board.len();
         for y in 0..height {
             for x in 0..width {
+                self.transmute(x, y, rng);
+            }
+        }
+        for y in 0..height {
+            for x in 0..width {
                 // new_board[x][y] = self.board[x][y];
                 // Gravity
                 if y != height - 1 {
@@ -263,7 +268,11 @@ impl GameWorld {
                         ElementKind::Liquid { .. } => {
                             if !self.move_down(x, y, rng) {
                                 if !self.move_down_side(x, y, rng) {
-                                    self.move_side(x, y, rng);
+                                    if !self.swap_down(x, y, rng) {
+                                        if !self.swap_down_side(x, y, rng) {
+                                            self.move_side(x, y, rng);
+                                        }
+                                    }
                                 }
                             }
                         },
@@ -373,9 +382,17 @@ impl GameWorld {
 }
 
 impl GameWorld {
-    pub fn new(width: usize, height: usize, scaling_factor:usize) -> Self {
-        assert_eq!(width % scaling_factor, 0, "Expected the width to be divisible by the scaling factor!");
-        assert_eq!(height % scaling_factor, 0, "Expected the height to be divisible by the scaling factor!");
+    pub fn new(width: usize, height: usize, scaling_factor: usize) -> Self {
+        assert_eq!(
+            width % scaling_factor,
+            0,
+            "Expected the width to be divisible by the scaling factor!"
+        );
+        assert_eq!(
+            height % scaling_factor,
+            0,
+            "Expected the height to be divisible by the scaling factor!"
+        );
         Self {
             board: vec![vec![Element::None; height / scaling_factor]; width / scaling_factor],
             moves: Vec::new(),
