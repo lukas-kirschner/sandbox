@@ -6,9 +6,12 @@ use sdl2::render::{Texture, WindowCanvas};
 pub struct Ui {
     pub win_width: usize,
     pub win_height: usize,
+    /// Board width in pixels
     pub board_width: usize,
+    /// Board height in pixels
     pub board_height: usize,
     cursor_size: i32,
+    pub(crate) scaling_factor: usize
 }
 
 impl Ui {
@@ -27,8 +30,8 @@ impl Ui {
         window_y: i32,
     ) -> Option<(i32, i32)> {
         let ret = (
-            window_x - (self.win_width - self.board_width) as i32 / 2,
-            window_y - (self.win_height - self.board_height) as i32 / 2,
+            (window_x - (self.win_width - self.board_width) as i32 / 2) / self.scaling_factor as i32,
+            (window_y - (self.win_height - self.board_height) as i32 / 2) / self.scaling_factor as i32,
         );
         if ret.0 < 0
             || ret.1 < 0
@@ -40,13 +43,14 @@ impl Ui {
             Some(ret)
         }
     }
-    pub fn new(width: usize, height: usize) -> Self {
+    pub fn new(width: usize, height: usize, scaling_factor:usize) -> Self {
         Self {
             win_width: width,
             win_height: height,
             board_width: width - 120,
             board_height: height - 80,
             cursor_size: 3,
+            scaling_factor
         }
     }
     /// Draw the window content
@@ -86,15 +90,21 @@ impl Ui {
         texture.with_lock(
             Rect::from((0, 0, self.board_width as u32, self.board_height as u32)),
             |pixel_data, _pitch| {
-                for y in 0..self.board_height {
-                    for x in 0..self.board_width {
-                        pixel_data[((y * self.board_width) + x) * 4 + 3] = 0xff;
-                        pixel_data[((y * self.board_width) + x) * 4 + 2] =
-                            world.board()[x][y].color().r;
-                        pixel_data[((y * self.board_width) + x) * 4 + 1] =
-                            world.board()[x][y].color().g;
-                        pixel_data[((y * self.board_width) + x) * 4] =
-                            world.board()[x][y].color().b;
+                for board_y in 0..self.board_height / self.scaling_factor {
+                    for board_x in 0..self.board_width / self.scaling_factor {
+                        for x_scf in 0..self.scaling_factor{
+                            for y_scf in 0..self.scaling_factor{
+                                let win_x = board_x * self.scaling_factor + x_scf;
+                                let win_y = board_y * self.scaling_factor + y_scf;
+                                pixel_data[((win_y * self.board_width) + win_x) * 4 + 3] = 0xff;
+                                pixel_data[((win_y * self.board_width) + win_x) * 4 + 2] =
+                                    world.board()[board_x][board_y].color().r;
+                                pixel_data[((win_y * self.board_width) + win_x) * 4 + 1] =
+                                    world.board()[board_x][board_y].color().g;
+                                pixel_data[((win_y * self.board_width) + win_x) * 4] =
+                                    world.board()[board_x][board_y].color().b;
+                            }
+                        }
                     }
                 }
             },

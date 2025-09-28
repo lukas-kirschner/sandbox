@@ -373,9 +373,11 @@ impl GameWorld {
 }
 
 impl GameWorld {
-    pub fn new(width: usize, height: usize) -> Self {
+    pub fn new(width: usize, height: usize, scaling_factor:usize) -> Self {
+        assert_eq!(width % scaling_factor, 0, "Expected the width to be divisible by the scaling factor!");
+        assert_eq!(height % scaling_factor, 0, "Expected the height to be divisible by the scaling factor!");
         Self {
-            board: vec![vec![Element::None; height]; width],
+            board: vec![vec![Element::None; height / scaling_factor]; width / scaling_factor],
             moves: Vec::new(),
         }
     }
@@ -393,7 +395,7 @@ mod tests {
 
     #[test]
     fn test_fall_tick_simple() {
-        let mut board = GameWorld::new(3, 3);
+        let mut board = GameWorld::new(3, 3, 1);
         let mut rng = XorShiftRng::seed_from_u64(0);
         board.board[1][1] = Element::Sand;
         board.tick(&mut rng);
@@ -402,7 +404,7 @@ mod tests {
     }
     #[test]
     fn test_fall_tick_stacked() {
-        let mut board = GameWorld::new(3, 3);
+        let mut board = GameWorld::new(3, 3, 1);
         let mut rng = XorShiftRng::seed_from_u64(0);
         board.board[1][0] = Element::Sand;
         board.board[1][1] = Element::Sand;
