@@ -1,4 +1,4 @@
-use crate::element::Element;
+use crate::element::{Element, ElementKind};
 use crate::world::GameWorld;
 use rand::{Rng, RngCore};
 
@@ -36,8 +36,22 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
             },
             _ => Transmutation::None,
         },
-        Element::Steam => Transmutation::None,
         Element::Hydrogen => Transmutation::None,
+        Element::Steam => match b {
+            // Low probability to condensate in air
+            Element::None => Transmutation::WithProbability {
+                probability: 0.00005,
+                outcome_a: Some(Element::Water),
+                outcome_b: None,
+            },
+            // Condensate when touching walls
+            e if matches!(e.kind(), ElementKind::Solid) => Transmutation::WithProbability {
+                probability: 0.001,
+                outcome_a: Some(Element::Water),
+                outcome_b: Some(*e),
+            },
+            _ => Transmutation::None,
+        },
     }
 }
 
