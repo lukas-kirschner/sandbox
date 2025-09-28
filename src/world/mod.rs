@@ -1,7 +1,7 @@
-use crate::element::{Element, ElementKind, AIR_DENSITY};
+use crate::element::{AIR_DENSITY, Element, ElementKind};
 use crate::ui::Ui;
 use rand::{Rng, RngCore};
-use std::cmp::{max, min, Ordering};
+use std::cmp::{Ordering, max, min};
 mod transmute;
 enum Move {
     /// Move the source element to the empty target location
@@ -353,7 +353,11 @@ impl GameWorld {
                         ElementKind::Gas { .. } => {
                             if !self.move_down(x, y, rng) {
                                 if !self.move_side(x, y, rng) {
-                                    self.move_down_side(x, y, rng);
+                                    if !self.move_down_side(x, y, rng) {
+                                        if !self.swap_down_side(x, y, rng) {
+                                            self.swap_down(x, y, rng);
+                                        }
+                                    }
                                 }
                             }
                         },

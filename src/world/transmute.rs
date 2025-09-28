@@ -37,6 +37,7 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
             _ => Transmutation::None,
         },
         Element::Steam => Transmutation::None,
+        Element::Hydrogen => Transmutation::None,
     }
 }
 

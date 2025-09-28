@@ -12,6 +12,7 @@ pub enum Element {
     SaltWater,
     WaterSource,
     Steam,
+    Hydrogen,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
@@ -41,7 +42,8 @@ impl Element {
             Element::SaltWater => ElementKind::Liquid { density: 1027.0 },
             Element::Salt => ElementKind::Powder { density: 2170.0 },
             Element::WaterSource => ElementKind::Solid,
-            Element::Steam => ElementKind::Gas {density: 0.6}
+            Element::Steam => ElementKind::Gas { density: 0.6 },
+            Element::Hydrogen => ElementKind::Gas { density: 0.08988 },
         }
     }
     pub fn density(&self) -> Option<f32> {
@@ -79,6 +81,7 @@ impl Display for Element {
                 Element::Salt => "Salt",
                 Element::WaterSource => "Water Source",
                 Element::Steam => "Steam",
+                Element::Hydrogen => "Hydrogen",
             }
         )
     }
