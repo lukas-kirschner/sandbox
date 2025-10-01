@@ -43,7 +43,7 @@ pub enum Element {
     },
 }
 
-#[derive(Copy, Clone, PartialEq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Debug, Default, EnumIter)]
 pub enum ElementKind {
     #[default]
     None,
@@ -189,6 +189,16 @@ impl Element {
             ElementKind::Powder { .. } => false,
             ElementKind::Liquid { .. } => true,
             ElementKind::Gas { .. } => true,
+        }
+    }
+    /// Checks if the element kind of the element matches the given kind, ignoring all attributes
+    pub const fn is_kind_of(&self, kind: &ElementKind) -> bool {
+        match self.kind() {
+            ElementKind::None => matches!(kind, ElementKind::None),
+            ElementKind::Solid => matches!(kind, ElementKind::Solid),
+            ElementKind::Powder { .. } => matches!(kind, ElementKind::Powder { .. }),
+            ElementKind::Liquid { .. } => matches!(kind, ElementKind::Liquid { .. }),
+            ElementKind::Gas { .. } => matches!(kind, ElementKind::Gas { .. }),
         }
     }
 }

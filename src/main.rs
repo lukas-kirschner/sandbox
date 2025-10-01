@@ -27,7 +27,7 @@ const ACTIVE_BUTTON_BACKGROUND: [f32; 4] = [0.5, 0.5, 0.5, 1.0];
 const HOVERED_BUTTON_BACKGROUND: [f32; 4] = [0.6, 0.6, 0.6, 1.0];
 // const TOOLTIP_TEXT_DENSITY: [f32; 4] = [0.7, 0.7, 0.2, 1.0];
 
-use crate::element::Element;
+use crate::element::{Element, ElementKind};
 use crate::ui::Ui;
 use crate::world::GameWorld;
 use imgui::{Condition, StyleColor};
@@ -179,35 +179,50 @@ fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element
         .collapsible(false)
         .title_bar(false);
     win.build(|| {
-        for e in Element::iter() {
-            if e == Element::None || matches!(e, Element::BurningParticle { .. }) {
+        for kind in ElementKind::iter() {
+            if matches!(kind, ElementKind::None) {
                 continue;
             }
-            let hovercolor =
-                ui.push_style_color(StyleColor::ButtonHovered, HOVERED_BUTTON_BACKGROUND);
-            let bgcolor = if &e == selected {
-                ui.push_style_color(StyleColor::Button, ACTIVE_BUTTON_BACKGROUND)
-            } else {
-                ui.push_style_color(StyleColor::Button, INACTIVE_BUTTON_BACKGROUND)
-            };
-            ui.button(format!("{}", e));
-            if ui.is_item_clicked() {
-                *selected = e;
+            ui.text(match kind {
+                ElementKind::None => "",
+                ElementKind::Solid => "Solids:",
+                ElementKind::Powder { .. } => "Powders:",
+                ElementKind::Liquid { .. } => "Liquids:",
+                ElementKind::Gas { .. } => "Gases:",
+            });
+            ui.spacing();
+            for e in Element::iter().filter(|e| e.is_kind_of(&kind)) {
+                if e == Element::None || matches!(e, Element::BurningParticle { .. }) {
+                    continue;
+                }
+                let hovercolor =
+                    ui.push_style_color(StyleColor::ButtonHovered, HOVERED_BUTTON_BACKGROUND);
+                let bgcolor = if &e == selected {
+                    ui.push_style_color(StyleColor::Button, ACTIVE_BUTTON_BACKGROUND)
+                } else {
+                    ui.push_style_color(StyleColor::Button, INACTIVE_BUTTON_BACKGROUND)
+                };
+                ui.button(format!("{}", e));
+                if ui.is_item_clicked() {
+                    *selected = e;
+                }
+                // TODO How to draw Imgui above game board?
+                // if ui.is_item_hovered_with_flags(ItemHoveredFlags::ALLOW_WHEN_DISABLED) {
+                //     ui.tooltip(|| {
+                //         ui.text(format!("{}", e));
+                //         if let Some(density) = e.density() {
+                //             ui.text_colored(
+                //                 TOOLTIP_TEXT_DENSITY,
+                //                 format!("density {:.2}kg/m³", density),
+                //             );
+                //         }
+                //     });
+                // }
+                bgcolor.pop();
+                hovercolor.pop()
             }
-            // TODO How to draw Imgui above game board?
-            // if ui.is_item_hovered_with_flags(ItemHoveredFlags::ALLOW_WHEN_DISABLED) {
-            //     ui.tooltip(|| {
-            //         ui.text(format!("{}", e));
-            //         if let Some(density) = e.density() {
-            //             ui.text_colored(
-            //                 TOOLTIP_TEXT_DENSITY,
-            //                 format!("density {:.2}kg/m³", density),
-            //             );
-            //         }
-            //     });
-            // }
-            bgcolor.pop();
-            hovercolor.pop()
+            ui.separator();
+            ui.spacing();
         }
     });
 }
