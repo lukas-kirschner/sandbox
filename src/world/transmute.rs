@@ -1,12 +1,20 @@
 use crate::element::{Element, ElementKind, Flammability};
 use crate::world::GameWorld;
+use rand::prelude::IndexedRandom;
 use rand::{Rng, RngCore};
 
 enum Transmutation {
     None,
+    /// An element a has a chance of transforming into A and B
     WithProbability {
         probability: f64,
         outcome_a: Option<Element>,
+        outcome_b: Option<Element>,
+    },
+    /// An element transforms into one or many of A and exactly one of B
+    WithProbabilityOfMultipleA {
+        probability: f64,
+        outcome_a: Vec<Element>,
         outcome_b: Option<Element>,
     },
 }
@@ -25,8 +33,37 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
             },
             _ => Transmutation::None,
         },
-        Element::Water => Transmutation::None,
-        Element::SaltWater => Transmutation::None,
+        Element::Water => match b {
+            // Water extinguishes Flames
+            Element::Flame => Transmutation::WithProbability {
+                probability: 0.1,
+                outcome_a: None,
+                outcome_b: Some(Element::Steam),
+            },
+            // Water boils when touching hot surfaces
+            Element::FireSource => Transmutation::WithProbability {
+                probability: 0.01,
+                outcome_a: Some(Element::Steam),
+                outcome_b: Some(Element::FireSource),
+            },
+            _ => Transmutation::None,
+        },
+        Element::SaltWater => match b {
+            // Salt Water extinguishes Flames
+            Element::Flame => Transmutation::WithProbability {
+                probability: 0.1,
+                outcome_a: Some(Element::Salt),
+                outcome_b: Some(Element::Steam),
+            },
+            // Salt Water boils when touching hot surfaces, having a chance of turning into salt or steam
+            Element::FireSource => Transmutation::WithProbabilityOfMultipleA {
+                probability: 0.01,
+                outcome_a: vec![Element::Steam, Element::Salt],
+                outcome_b: Some(Element::FireSource),
+            },
+            _ => Transmutation::None,
+        },
+
         Element::WaterSource => match b {
             // Water Source spawns water
             Element::None => Transmutation::WithProbability {
@@ -82,6 +119,18 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
                 probability: 0.001,
                 outcome_a: Some(Element::Dust),
                 outcome_b: Some(Element::Water),
+            },
+            // Is very good at extinguishing fire
+            Element::Flame => Transmutation::WithProbability {
+                probability: 0.05,
+                outcome_a: Some(Element::WetDust),
+                outcome_b: None,
+            },
+            // The water evaporates when touching hot surfaces
+            Element::FireSource => Transmutation::WithProbabilityOfMultipleA {
+                probability: 0.01,
+                outcome_a: vec![Element::Dust, Element::Steam],
+                outcome_b: Some(Element::FireSource),
             },
             _ => Transmutation::None,
         },
@@ -165,6 +214,16 @@ impl GameWorld {
                     if rng.random_bool(probability) {
                         // Transmute!
                         self.board[x][y] = outcome_a.unwrap_or(Element::None);
+                        self.board[b_x as usize][b_y as usize] = outcome_b.unwrap_or(Element::None);
+                    }
+                },
+                Transmutation::WithProbabilityOfMultipleA {
+                    probability,
+                    outcome_a,
+                    outcome_b,
+                } => {
+                    if rng.random_bool(probability) {
+                        self.board[x][y] = *outcome_a.choose(rng).unwrap_or(&Element::None);
                         self.board[b_x as usize][b_y as usize] = outcome_b.unwrap_or(Element::None);
                     }
                 },
