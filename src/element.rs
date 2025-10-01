@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::fmt::{Display, Formatter};
 use strum_macros::EnumIter;
 
@@ -39,6 +40,33 @@ pub enum ElementKind {
 }
 
 impl Element {
+    /// The probability of an element to spread to the side (down-side/up-side for gases) instead of falling down.
+    /// The probability of spreading is calculated as follows:
+    ///     p_spreading = max(0, (1 - |density1 - density2| / 3000) )
+    /// -> i.e., concrete powder (density > 3000) will never spread
+    pub const fn spread_prob(&self, environment: &Element) -> f64{
+        let displaced_density = match environment.kind(){
+            ElementKind::None => AIR_DENSITY,
+            ElementKind::Solid => return 0.0, // Cannot replace solid!
+            ElementKind::Powder { density } => density,
+            ElementKind::Liquid { density } => density,
+            ElementKind::Gas { density } => density,
+        };
+        let density_diff = (displaced_density - match self.kind(){
+            ElementKind::None => AIR_DENSITY,
+            ElementKind::Solid => return 0.0,
+            ElementKind::Powder { density } => density,
+            ElementKind::Liquid { density } => density,
+            ElementKind::Gas { density } => density,
+        }).abs() as f64;
+        (1.0 - density_diff / 3000.0).max(0.0)
+    }
+    /// The probability of an element spreading to the side instead of rising up or falling down.
+    /// The probability of a side spread is calculated as follows:
+    ///     p_side = p_spreading * 0.5
+    pub const fn spread_side_prob(&self, environment: &Element)->f64{
+        self.spread_prob(environment) * 0.5
+    }
     /// The element kind and associated properties (density, ...)
     pub const fn kind(&self) -> ElementKind {
         match self {

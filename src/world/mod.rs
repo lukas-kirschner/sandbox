@@ -71,12 +71,16 @@ impl GameWorld {
         }
     }
     /// Try to push a 'move down' to the moves vector and return true if that succeeded.
-    fn move_down(&mut self, x: usize, y: usize, _rng: &mut dyn RngCore) -> bool {
+    fn move_down(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
         match self.board[x][y].density() {
             None => false,
             Some(density) => {
                 if density > AIR_DENSITY {
                     if y < (self.board[0].len() - 1) {
+                        // Skip move with side spread probability
+                        if rng.random_bool(self.board[x][y].spread_prob(&self.board[x][y+1])){
+                            return false;
+                        }
                         if self.board[x][y + 1] == Element::None {
                             self.moves.push(Move::MoveElement {
                                 from_x: x,
@@ -94,6 +98,10 @@ impl GameWorld {
                 } else if density <= AIR_DENSITY {
                     // The element is a gas or something with less density than air! Try to move up:
                     if y > 0 {
+                        // Skip move with side spread probability
+                        if rng.random_bool(self.board[x][y].spread_prob(&self.board[x][y-1])){
+                            return false;
+                        }
                         if self.board[x][y - 1] == Element::None {
                             self.moves.push(Move::MoveElement {
                                 from_x: x,
@@ -119,6 +127,10 @@ impl GameWorld {
         if y < (self.board[0].len() - 1) {
             // Only enable swaps if the bottom element is a liquid or gas!
             if !self.board[x][y + 1].is_liquid_or_gas() {
+                return false;
+            }
+            // Skip move with side spread probability
+            if rng.random_bool(self.board[x][y].spread_prob(&self.board[x][y+1])){
                 return false;
             }
             let my_density = self.board[x][y].density();
@@ -157,6 +169,10 @@ impl GameWorld {
                             down_right = !down_left;
                         }
                         if down_left {
+                            // Skip move with side spread probability
+                            if rng.random_bool(self.board[x][y].spread_side_prob(&self.board[x-1][y+1])){
+                                return false;
+                            }
                             self.moves.push(Move::MoveElement {
                                 from_x: x,
                                 from_y: y,
@@ -166,6 +182,10 @@ impl GameWorld {
                             return true;
                         }
                         if down_right {
+                            // Skip move with side spread probability
+                            if rng.random_bool(self.board[x][y].spread_side_prob(&self.board[x+1][y+1])){
+                                return false;
+                            }
                             self.moves.push(Move::MoveElement {
                                 from_x: x,
                                 from_y: y,
@@ -188,6 +208,10 @@ impl GameWorld {
                             up_right = !up_left;
                         }
                         if up_left {
+                            // Skip move with side spread probability
+                            if rng.random_bool(self.board[x][y].spread_side_prob(&self.board[x-1][y-1])){
+                                return false;
+                            }
                             self.moves.push(Move::MoveElement {
                                 from_x: x,
                                 from_y: y,
@@ -197,6 +221,10 @@ impl GameWorld {
                             return true;
                         }
                         if up_right {
+                            // Skip move with side spread probability
+                            if rng.random_bool(self.board[x][y].spread_side_prob(&self.board[x+1][y-1])){
+                                return false;
+                            }
                             self.moves.push(Move::MoveElement {
                                 from_x: x,
                                 from_y: y,
@@ -255,6 +283,10 @@ impl GameWorld {
                     let density_quot = b / a;
                     debug_assert!(density_quot < 1.);
                     if rng.random_bool((1. - density_quot) as f64 * prob_quot) {
+                        // Skip move with side spread probability
+                        if rng.random_bool(self.board[x][y].spread_side_prob(&self.board[x-1][y+1])){
+                            return false;
+                        }
                         self.moves.push(Move::SwapElement {
                             from_x: x,
                             from_y: y,
@@ -268,6 +300,10 @@ impl GameWorld {
                     let density_quot = b / a;
                     debug_assert!(density_quot < 1.);
                     if rng.random_bool((1. - density_quot) as f64 * prob_quot) {
+                        // Skip move with side spread probability
+                        if rng.random_bool(self.board[x][y].spread_side_prob(&self.board[x+1][y+1])){
+                            return false;
+                        }
                         self.moves.push(Move::SwapElement {
                             from_x: x,
                             from_y: y,
