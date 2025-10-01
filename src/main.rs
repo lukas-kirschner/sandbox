@@ -25,12 +25,12 @@ mod world;
 const INACTIVE_BUTTON_BACKGROUND: [f32; 4] = [0.2, 0.2, 0.2, 1.0];
 const ACTIVE_BUTTON_BACKGROUND: [f32; 4] = [0.5, 0.5, 0.5, 1.0];
 const HOVERED_BUTTON_BACKGROUND: [f32; 4] = [0.6, 0.6, 0.6, 1.0];
-const TOOLTIP_TEXT_DENSITY: [f32; 4] = [0.7, 0.7, 0.2, 1.0];
+// const TOOLTIP_TEXT_DENSITY: [f32; 4] = [0.7, 0.7, 0.2, 1.0];
 
 use crate::element::Element;
 use crate::ui::Ui;
 use crate::world::GameWorld;
-use imgui::{Condition, ItemHoveredFlags, StyleColor};
+use imgui::{Condition, StyleColor};
 use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
 use sdl2::event::Event;
