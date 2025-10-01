@@ -25,11 +25,12 @@ mod world;
 const INACTIVE_BUTTON_BACKGROUND: [f32; 4] = [0.2, 0.2, 0.2, 1.0];
 const ACTIVE_BUTTON_BACKGROUND: [f32; 4] = [0.5, 0.5, 0.5, 1.0];
 const HOVERED_BUTTON_BACKGROUND: [f32; 4] = [0.6, 0.6, 0.6, 1.0];
+const TOOLTIP_TEXT_DENSITY: [f32; 4] = [0.7, 0.7, 0.2, 1.0];
 
 use crate::element::Element;
 use crate::ui::Ui;
 use crate::world::GameWorld;
-use imgui::{Condition, StyleColor};
+use imgui::{Condition, ItemHoveredFlags, StyleColor};
 use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
 use sdl2::event::Event;
@@ -118,6 +119,7 @@ fn main() -> Result<(), String> {
         } else if state.is_mouse_button_pressed(MouseButton::Right) {
             world.insert_element_at(&game_world, state.x(), state.y(), Element::None);
         }
+
         imgui_sdl.prepare_frame(imgui.io_mut(), canvas.window(), &event_pump.mouse_state());
 
         let now = Instant::now();
@@ -139,14 +141,14 @@ fn main() -> Result<(), String> {
         // Update the window graphics
         // Draw the new board to the window
         game_world.draw(&mut canvas, &mut texture, &world)?;
+        // Flush the GL buffer. Workaround for white windows
+        unsafe { gl::Flush() };
+        canvas.present();
         unsafe { gl::Flush() };
         canvas.window_mut().gl_make_current(&_gl_context)?;
         imgui_sdl.prepare_render(ui, canvas.window());
         renderer.render(&mut imgui);
-        // Flush the GL buffer. Workaround for white windows
         unsafe { gl::Flush() };
-        canvas.present();
-        // canvas.window().gl_swap_window();
     }
     Ok(())
 }
@@ -191,6 +193,17 @@ fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element
             ui.button(format!("{}", e));
             if ui.is_item_clicked() {
                 *selected = e;
+            }
+            if ui.is_item_hovered_with_flags(ItemHoveredFlags::ALLOW_WHEN_DISABLED) {
+                ui.tooltip(|| {
+                    ui.text(format!("{}", e));
+                    if let Some(density) = e.density() {
+                        ui.text_colored(
+                            TOOLTIP_TEXT_DENSITY,
+                            format!("density {:.2}kg/m³", density),
+                        );
+                    }
+                });
             }
             bgcolor.pop();
             hovercolor.pop()

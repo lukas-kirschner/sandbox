@@ -37,11 +37,12 @@ impl Ui {
         );
         if ret.0 < 0
             || ret.1 < 0
-            || ret.0 >= self.board_width as i32
-            || ret.1 >= self.board_height as i32
+            || ret.0 * self.scaling_factor as i32 >= self.board_width as i32
+            || ret.1 * self.scaling_factor as i32 >= self.board_height as i32
         {
             None
         } else {
+            // println!("Board {} {} Cursor {} {}", self.board_width, self.board_height, ret.0, ret.1);
             Some(ret)
         }
     }
