@@ -1,4 +1,4 @@
-use crate::element::{Element, ElementKind};
+use crate::element::{Element, ElementKind, Flammability};
 use crate::world::GameWorld;
 use rand::{Rng, RngCore};
 
@@ -39,7 +39,7 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
         Element::FireSource => match b {
             // Fire Source spawns flames
             Element::None => Transmutation::WithProbability {
-                probability: 0.045,
+                probability: 0.085,
                 outcome_a: Some(Element::FireSource),
                 outcome_b: Some(Element::Flame),
             },
@@ -85,8 +85,34 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
             },
             _ => Transmutation::None,
         },
-        Element::Flame => Transmutation::None,
-        Element::BurningParticle { .. } => Transmutation::None,
+        // Handle all flammable elements here:
+        Element::Flame => match b.flammability() {
+            Flammability::NotFlammable => Transmutation::None,
+            Flammability::Flammable {
+                prob,
+                decay_prob,
+                flame_spawn_prob,
+            } => Transmutation::WithProbability {
+                probability: prob,
+                outcome_a: None,
+                outcome_b: Some(Element::BurningParticle {
+                    burned_element_kind: b.kind(),
+                    decay_prob,
+                    flame_spawn_prob,
+                }),
+            },
+        },
+        Element::BurningParticle {
+            flame_spawn_prob, ..
+        } => match b {
+            // Burning Particles spawn flames
+            Element::None => Transmutation::WithProbability {
+                probability: *flame_spawn_prob,
+                outcome_a: Some(*a),
+                outcome_b: Some(Element::Flame),
+            },
+            _ => Transmutation::None,
+        },
     }
 }
 

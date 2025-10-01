@@ -23,7 +23,7 @@ pub enum Element {
     BurningParticle {
         burned_element_kind: ElementKind,
         decay_prob: usize,
-        flame_spawn_prob: usize,
+        flame_spawn_prob: f64,
     },
 }
 
@@ -48,6 +48,19 @@ pub enum ElementKind {
         /// Controls the displacement of other gases and liquids while rising up.
         /// Lighter gases have less probability of spreading while rising up.
         density: f32,
+    },
+}
+#[derive(Copy, Clone, PartialEq, Debug, Default)]
+pub enum Flammability {
+    #[default]
+    NotFlammable,
+    Flammable {
+        /// The probability of this element to start burning when touching a flame
+        prob: f64,
+        /// The probability 1/n for the burning particle of this element to decay
+        decay_prob: usize,
+        /// The probability of this burning element to spawn a flame when burning
+        flame_spawn_prob: f64,
     },
 }
 
@@ -109,6 +122,38 @@ impl Element {
                 ..
             } => *burned_element_kind,
             Element::FireSource => ElementKind::Solid,
+        }
+    }
+    /// The flammability properties of flammable elements
+    pub const fn flammability(&self) -> Flammability {
+        match self {
+            Element::None => Flammability::NotFlammable,
+            Element::BrickWall => Flammability::NotFlammable,
+            Element::Sand => Flammability::NotFlammable,
+            Element::Salt => Flammability::NotFlammable,
+            Element::Dust => Flammability::Flammable {
+                prob: 0.75,
+                decay_prob: 25,
+                flame_spawn_prob: 0.05,
+            },
+            Element::WetDust => Flammability::NotFlammable,
+            Element::Water => Flammability::NotFlammable,
+            Element::SaltWater => Flammability::NotFlammable,
+            Element::WaterSource => Flammability::NotFlammable,
+            Element::FireSource => Flammability::NotFlammable,
+            Element::Steam => Flammability::NotFlammable,
+            Element::Hydrogen => Flammability::Flammable {
+                prob: 0.95,
+                decay_prob: 3,
+                flame_spawn_prob: 0.85,
+            },
+            // Element::Hydrogen => Flammability::Flammable {
+            //     prob: 0.95,
+            //     decay_prob: 5,
+            //     flame_spawn_prob: 0.95,
+            // },
+            Element::Flame => Flammability::NotFlammable,
+            Element::BurningParticle { .. } => Flammability::NotFlammable,
         }
     }
     pub const fn density(&self) -> Option<f32> {
