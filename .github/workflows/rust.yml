@@ -104,10 +104,10 @@ jobs:
         with:
           command: build
           args: --release
-      - name: Strip Metadata
-        run: |
-          cp -vr assets target/release
-        shell: bash
+#      - name: Strip Metadata
+#        run: |
+#          cp -vr assets target/release
+#        shell: bash
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
