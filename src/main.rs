@@ -180,7 +180,7 @@ fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element
         .title_bar(false);
     win.build(|| {
         for e in Element::iter() {
-            if e == Element::None {
+            if e == Element::None || matches!(e, Element::BurningParticle {..}) {
                 continue;
             }
             let hovercolor =

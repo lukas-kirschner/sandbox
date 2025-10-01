@@ -350,8 +350,14 @@ impl GameWorld {
         self.moves.clear();
         let height = self.board[0].len();
         let width = self.board.len();
+        // First, perform a 'Decay' pass - This will decay all decaying elements with a certain probability.
+        for y in 0..height {
+            for x in 0..width {
+                self.decay(x, y, rng);
+            }
+        }
 
-        // First, perform a 'Transmute' pass! This will transmute all applicable elements in-place
+        // Then, perform a 'Transmute' pass! This will transmute all applicable elements in-place
         for y in 0..height {
             for x in 0..width {
                 self.transmute(x, y, rng);

@@ -13,6 +13,8 @@ pub const SALT_COLOR: Color = Color::RGB(0xd7, 0xd7, 0xd9);
 pub const WATER_SOURCE_COLOR: Color = Color::RGB(0x9c, 0xad, 0xbc);
 pub const STEAM_COLOR: Color = Color::RGB(0xee, 0xee, 0xff);
 pub const HYDROGEN_COLOR: Color = Color::RGB(0x30, 0x00, 0x80);
+pub const FLAME_COLOR: Color = Color::RGB(0xf2, 0x92, 0x1d);
+pub const BURNING_COLOR: Color = Color::RGB(0xd9, 0x67, 0x04);
 impl Element {
     pub fn color(&self) -> Color {
         match self {
@@ -27,6 +29,8 @@ impl Element {
             Element::Hydrogen => HYDROGEN_COLOR,
             Element::Dust => DUST_COLOR,
             Element::WetDust => WET_DUST_COLOR,
+            Element::Flame => FLAME_COLOR,
+            Element::BurningParticle { .. } => BURNING_COLOR,
         }
     }
 }

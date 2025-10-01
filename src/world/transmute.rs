@@ -52,7 +52,7 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
             },
             _ => Transmutation::None,
         },
-        Element::Dust => match b{
+        Element::Dust => match b {
             // Transforms to wet dust in water
             Element::Water => Transmutation::WithProbability {
                 probability: 0.005,
@@ -67,7 +67,7 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
             },
             _ => Transmutation::None,
         },
-        Element::WetDust => match b{
+        Element::WetDust => match b {
             // Has a small chance of 'bleeding' water
             Element::None => Transmutation::WithProbability {
                 probability: 0.001,
@@ -76,10 +76,21 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
             },
             _ => Transmutation::None,
         },
+        Element::Flame => Transmutation::None,
+        Element::BurningParticle { .. } => Transmutation::None,
     }
 }
 
 impl GameWorld {
+    /// Decay all decaying elements in the world
+    pub(in crate::world) fn decay(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) {
+        if let Some(decay_prob) = self.board[x][y].decay_prob() {
+            if rng.random_bool(decay_prob) {
+                // Decay the element
+                self.board[x][y] = Element::None;
+            }
+        }
+    }
     /// Randomly transmute elements in the world
     pub(in crate::world) fn transmute(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) {
         let height = self.board[0].len();
