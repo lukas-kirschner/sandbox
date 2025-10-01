@@ -20,20 +20,27 @@ pub enum ElementKind {
     None,
     Solid,
     Powder {
-        /// The density in kg/m³
+        /// The density in kg/m³.
+        /// Controls the behavior of powders in liquids (i.e., powders more dense than liquids sink down while less dense powders do not sink down).
+        /// While falling down, less dense powders get a higher probability of spreading to the side while falling (i.e., skipping a down-fall or down-side-fall).
         density: f32,
     },
     Liquid {
-        // The density in kg/m³
+        /// The density in kg/m³.
+        /// Controls the displacement of other liquids and the spread of liquids while free-falling down.
         density: f32,
     },
     Gas {
+        /// The density in kg/m³.
+        /// Controls the displacement of other gases and liquids while rising up.
+        /// Lighter gases have less probability of spreading while rising up.
         density: f32,
     },
 }
 
 impl Element {
-    pub fn kind(&self) -> ElementKind {
+    /// The element kind and associated properties (density, ...)
+    pub const fn kind(&self) -> ElementKind {
         match self {
             Element::None => ElementKind::None,
             Element::Sand => ElementKind::Powder { density: 1700.0 },
@@ -46,7 +53,7 @@ impl Element {
             Element::Hydrogen => ElementKind::Gas { density: 0.08988 },
         }
     }
-    pub fn density(&self) -> Option<f32> {
+    pub const fn density(&self) -> Option<f32> {
         match self.kind() {
             ElementKind::None => None,
             ElementKind::Solid => None,
@@ -56,7 +63,7 @@ impl Element {
         }
     }
     /// Whether the given element is a liquid or a gas, i.e., whether the element can swap its position with other elements
-    pub fn is_liquid_or_gas(&self) -> bool {
+    pub const fn is_liquid_or_gas(&self) -> bool {
         match self.kind() {
             ElementKind::None => false,
             ElementKind::Solid => false,
