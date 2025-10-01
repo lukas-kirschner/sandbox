@@ -34,7 +34,7 @@ use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::mouse::MouseButton;
+use sdl2::mouse::{MouseButton, MouseState};
 use sdl2::pixels::PixelFormatEnum;
 use std::time::Instant;
 use strum::IntoEnumIterator;
@@ -108,20 +108,15 @@ fn main() -> Result<(), String> {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
-                Event::MouseMotion {
-                    mousestate, x, y, ..
-                } => {
-                    if mousestate.is_mouse_button_pressed(MouseButton::Left) {
-                        world.insert_element_at(&game_world, x, y, current_elem);
-                    } else if mousestate.is_mouse_button_pressed(MouseButton::Right) {
-                        // Delete the element at the given position
-                        world.insert_element_at(&game_world, x, y, Element::None);
-                    } else {
-                        // world.show_element_preview(&ui,x,y,Element::Sand);
-                    }
-                },
                 _ => {},
             }
+        }
+        // Always handle mouse events, no matter if the mouse is moved
+        let state = MouseState::new(&event_pump);
+        if state.is_mouse_button_pressed(MouseButton::Left) {
+            world.insert_element_at(&game_world, state.x(), state.y(), current_elem);
+        } else if state.is_mouse_button_pressed(MouseButton::Right) {
+            world.insert_element_at(&game_world, state.x(), state.y(), Element::None);
         }
         imgui_sdl.prepare_frame(imgui.io_mut(), canvas.window(), &event_pump.mouse_state());
 
