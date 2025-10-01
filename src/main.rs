@@ -194,17 +194,18 @@ fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element
             if ui.is_item_clicked() {
                 *selected = e;
             }
-            if ui.is_item_hovered_with_flags(ItemHoveredFlags::ALLOW_WHEN_DISABLED) {
-                ui.tooltip(|| {
-                    ui.text(format!("{}", e));
-                    if let Some(density) = e.density() {
-                        ui.text_colored(
-                            TOOLTIP_TEXT_DENSITY,
-                            format!("density {:.2}kg/m³", density),
-                        );
-                    }
-                });
-            }
+            // TODO How to draw Imgui above game board?
+            // if ui.is_item_hovered_with_flags(ItemHoveredFlags::ALLOW_WHEN_DISABLED) {
+            //     ui.tooltip(|| {
+            //         ui.text(format!("{}", e));
+            //         if let Some(density) = e.density() {
+            //             ui.text_colored(
+            //                 TOOLTIP_TEXT_DENSITY,
+            //                 format!("density {:.2}kg/m³", density),
+            //             );
+            //         }
+            //     });
+            // }
             bgcolor.pop();
             hovercolor.pop()
         }
