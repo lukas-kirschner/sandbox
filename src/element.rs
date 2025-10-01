@@ -9,6 +9,8 @@ pub enum Element {
     BrickWall,
     Sand,
     Salt,
+    Dust,
+    WetDust,
     Water,
     SaltWater,
     WaterSource,
@@ -42,7 +44,7 @@ pub enum ElementKind {
 impl Element {
     /// The probability of an element to spread to the side (down-side/up-side for gases) instead of falling down.
     /// The probability of spreading is calculated as follows:
-    ///     p_spreading = max(0, (1 - |density1 - density2| / 3000) )
+    ///     p_spreading = max(0, (1 - |density1 - density2| / 3000) * 0.3 )
     /// -> i.e., concrete powder (density > 3000) will never spread
     pub const fn spread_prob(&self, environment: &Element) -> f64{
         let displaced_density = match environment.kind(){
@@ -59,7 +61,7 @@ impl Element {
             ElementKind::Liquid { density } => density,
             ElementKind::Gas { density } => density,
         }).abs() as f64;
-        (1.0 - density_diff / 3000.0).max(0.0)
+        (1.0 - density_diff / 3000.0).max(0.0) * 0.3
     }
     /// The probability of an element spreading to the side instead of rising up or falling down.
     /// The probability of a side spread is calculated as follows:
@@ -79,6 +81,8 @@ impl Element {
             Element::WaterSource => ElementKind::Solid,
             Element::Steam => ElementKind::Gas { density: 0.6 },
             Element::Hydrogen => ElementKind::Gas { density: 0.08988 },
+            Element::Dust => ElementKind::Powder {density: 3.0},
+            Element::WetDust => ElementKind::Powder {density: 1000.0}
         }
     }
     pub const fn density(&self) -> Option<f32> {
@@ -117,6 +121,8 @@ impl Display for Element {
                 Element::WaterSource => "Water Source",
                 Element::Steam => "Steam",
                 Element::Hydrogen => "Hydrogen",
+                Element::Dust => "Dust",
+                Element::WetDust => "Wet Dust",
             }
         )
     }

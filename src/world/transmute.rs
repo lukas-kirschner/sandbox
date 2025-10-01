@@ -52,6 +52,30 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
             },
             _ => Transmutation::None,
         },
+        Element::Dust => match b{
+            // Transforms to wet dust in water
+            Element::Water => Transmutation::WithProbability {
+                probability: 0.005,
+                outcome_a: Some(Element::WetDust),
+                outcome_b: None,
+            },
+            // Transforms to salt and wet dust in salt water
+            Element::SaltWater => Transmutation::WithProbability {
+                probability: 0.005,
+                outcome_a: Some(Element::Salt),
+                outcome_b: Some(Element::WetDust),
+            },
+            _ => Transmutation::None,
+        },
+        Element::WetDust => match b{
+            // Has a small chance of 'bleeding' water
+            Element::None => Transmutation::WithProbability {
+                probability: 0.001,
+                outcome_a: Some(Element::Dust),
+                outcome_b: Some(Element::Water),
+            },
+            _ => Transmutation::None,
+        },
     }
 }
 
