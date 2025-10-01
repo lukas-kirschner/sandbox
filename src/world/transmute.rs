@@ -111,7 +111,23 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
                 outcome_a: Some(*a),
                 outcome_b: Some(Element::Flame),
             },
-            _ => Transmutation::None,
+            // Burning particles can light other burning particles on fire, but with a lower probability than flames.
+            e => match e.flammability() {
+                Flammability::NotFlammable => Transmutation::None,
+                Flammability::Flammable {
+                    prob,
+                    decay_prob,
+                    flame_spawn_prob,
+                } => Transmutation::WithProbability {
+                    probability: prob * 0.5,
+                    outcome_a: Some(*a),
+                    outcome_b: Some(Element::BurningParticle {
+                        burned_element_kind: b.kind(),
+                        decay_prob,
+                        flame_spawn_prob,
+                    }),
+                },
+            },
         },
     }
 }
