@@ -132,7 +132,10 @@ fn main() -> Result<(), String> {
         imgui.io_mut().delta_time = delta_s;
 
         // let no_ticks = TICKS_PER_SECOND as f32 * delta_s;
-        world.tick(&mut rng);
+        // Tick once for scaling 4, 4x for scaling 1
+        for _ in 0..(5i32 - game_world.scaling_factor as i32).max(1) {
+            world.tick(&mut rng);
+        }
 
         let ui = imgui.frame();
         build_element_buttons(ui, &game_world, &mut current_elem);
