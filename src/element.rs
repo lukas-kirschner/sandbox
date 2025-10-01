@@ -15,6 +15,7 @@ pub enum Element {
     Water,
     SaltWater,
     WaterSource,
+    FireSource,
     Steam,
     Hydrogen,
     Flame,
@@ -107,6 +108,7 @@ impl Element {
                 burned_element_kind,
                 ..
             } => *burned_element_kind,
+            Element::FireSource => ElementKind::Solid,
         }
     }
     pub const fn density(&self) -> Option<f32> {
@@ -149,6 +151,7 @@ impl Display for Element {
                 Element::WetDust => "Wet Dust",
                 Element::Flame => "Fire",
                 Element::BurningParticle { .. } => "INVALID",
+                Element::FireSource => "Fire Source",
             }
         )
     }

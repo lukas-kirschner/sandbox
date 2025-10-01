@@ -36,6 +36,15 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
             },
             _ => Transmutation::None,
         },
+        Element::FireSource => match b {
+            // Fire Source spawns flames
+            Element::None => Transmutation::WithProbability {
+                probability: 0.045,
+                outcome_a: Some(Element::FireSource),
+                outcome_b: Some(Element::Flame),
+            },
+            _ => Transmutation::None,
+        },
         Element::Hydrogen => Transmutation::None,
         Element::Steam => match b {
             // Low probability to condensate in air
