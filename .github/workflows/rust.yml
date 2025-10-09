@@ -33,7 +33,7 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: Install Dependencies
-        run: sudo apt-get install -y libxkbcommon-dev libfontconfig1-dev libsdl2-dev
+        run: sudo apt-get install --no-install-recommends -y libxkbcommon-dev libfontconfig1-dev libsdl2-dev
       - name: Checkout Repository
         uses: actions/checkout@v2
         with:
@@ -56,7 +56,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Install Dependencies
-        run: sudo apt-get install -y libxkbcommon-dev libfontconfig1-dev lcov libsdl2-dev
+        run: sudo apt-get install --no-install-recommends -y libxkbcommon-dev libfontconfig1-dev lcov libsdl2-dev
       - name: Checkout Repository
         uses: actions/checkout@v2
         with:
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install Dependencies
-        run: sudo apt-get install -y libxkbcommon-dev libfontconfig1-dev libsdl2-dev
+        run: sudo apt-get install --no-install-recommends -y libxkbcommon-dev libfontconfig1-dev libsdl2-dev
       - name: Checkout Repository
         uses: actions/checkout@v2
         with:
