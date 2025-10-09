@@ -48,7 +48,7 @@ fn main() -> Result<(), String> {
     {
         let gl_attr = video_subsystem.gl_attr();
         gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-        gl_attr.set_context_version(2, 1);
+        gl_attr.set_context_version(1, 1);
     }
     let mut game_world = Ui::new(1800, 960, 4);
     let window = video_subsystem
@@ -65,7 +65,7 @@ fn main() -> Result<(), String> {
 
     let _gl_context = window
         .gl_create_context()
-        .expect("Couldn't create GL context");
+        .map_err(|e| format!("Couldn't create GL context: {:?}", e))?;
     gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as _);
     let mut imgui = imgui::Context::create();
     imgui.set_ini_filename(None);
