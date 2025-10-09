@@ -128,20 +128,20 @@ jobs:
           path: C:\SDL2-*
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ env.SDL_VERSION }}
 
-    - if: ${{ steps.cache-windows-sdl.outputs.cache-hit != 'true' }}
-      name: Download SDL if not cached
-      run: |
-        Invoke-WebRequest "https://github.com/libsdl-org/SDL/releases/download/release-$env:SDL_VERSION/SDL2-devel-$env:SDL_VERSION-VC.zip" -OutFile C:\SDL.zip
-        Expand-Archive C:\SDL.zip -DestinationPath C:\
-    - run: rustup update stable
-    - run: |
-      xcopy C:\SDL2-$env:SDL_VERSION\lib\x64\SDL2.dll .
-      xcopy C:\SDL2-$env:SDL_VERSION\lib\x64\SDL2.lib .
-    - run: cargo build --release
-    - run: xcopy SDL2.dll target\release\
-    - uses: actions/upload-artifact@v4
-      with:
-        name: sandbox-windows-x64
-        path: |
-          target/release/sandbox.exe
-          target/release/SDL2.dll
+      - if: ${{ steps.cache-windows-sdl.outputs.cache-hit != 'true' }}
+        name: Download SDL if not cached
+        run: |
+          Invoke-WebRequest "https://github.com/libsdl-org/SDL/releases/download/release-$env:SDL_VERSION/SDL2-devel-$env:SDL_VERSION-VC.zip" -OutFile C:\SDL.zip
+          Expand-Archive C:\SDL.zip -DestinationPath C:\
+      - run: rustup update stable
+      - run: |
+        xcopy C:\SDL2-$env:SDL_VERSION\lib\x64\SDL2.dll .
+        xcopy C:\SDL2-$env:SDL_VERSION\lib\x64\SDL2.lib .
+      - run: cargo build --release
+      - run: xcopy SDL2.dll target\release\
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sandbox-windows-x64
+          path: |
+            target/release/sandbox.exe
+            target/release/SDL2.dll
