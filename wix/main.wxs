@@ -102,24 +102,22 @@
                             KeyPath='yes'/>
                     </Component>
                     
-                    <Directory Id='Bin' Name='bin'>
-                        <Component Id='binary0' Guid='*'>
-                            <File
-                                Id='exe0'
-                                Name='sandbox.exe'
-                                DiskId='1'
-                                Source='$(var.CargoTargetBinDir)\sandbox.exe'
-                                KeyPath='yes'/>
-                        </Component>
-                        <Component Id='sdlRuntime' Guid='*'>
-                            <File
-                                Id='dll0'
-                                Name='SDL2.dll'
-                                DiskId='1'
-                                Source='$(var.CargoTargetBinDir)\SDL2.dll'
-                                KeyPath='yes'/>
-                        </Component>
-                    </Directory>
+                    <Component Id='binary0' Guid='*'>
+                        <File
+                            Id='exe0'
+                            Name='sandbox.exe'
+                            DiskId='1'
+                            Source='$(var.CargoTargetBinDir)\sandbox.exe'
+                            KeyPath='yes'/>
+                    </Component>
+                    <Component Id='sdlRuntime' Guid='*'>
+                        <File
+                            Id='dll0'
+                            Name='SDL2.dll'
+                            DiskId='1'
+                            Source='$(var.CargoTargetBinDir)\SDL2.dll'
+                            KeyPath='yes'/>
+                    </Component>
                 </Directory>
             </Directory>
         </Directory>

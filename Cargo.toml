@@ -28,3 +28,8 @@ default-features = true
 needless_range_loop = "allow"
 collapsible_else_if = "allow"
 collapsible_if = "allow"
+
+[package.metadata.wix]
+culture = "En-Us"
+path-guid = "F754CC8B-B1E8-4BB2-8EB1-B5CEF5EF9E2F"
+upgrade-guid = "9D40401A-4F9C-48B7-A55C-312B174C6B18"
