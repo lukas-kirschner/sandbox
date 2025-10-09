@@ -2,6 +2,13 @@
 name = "sandbox"
 version = "0.1.0"
 edition = "2024"
+license = "GPL-3.0"
+authors = ["Lukas Kirschner"]
+description = "A simple 2D falling sand physics game"
+documentation = "https://github.com/lukas-kirschner/sandbox"
+repository = "https://github.com/lukas-kirschner/sandbox"
+homepage = "https://github.com/lukas-kirschner/sandbox"
+readme = "README.md"
 
 [dependencies]
 rand = "0.9.2"
