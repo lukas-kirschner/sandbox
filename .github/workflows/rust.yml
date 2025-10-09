@@ -104,10 +104,6 @@ jobs:
         with:
           command: build
           args: --release
-#      - name: Strip Metadata
-#        run: |
-#          cp -vr assets target/release
-#        shell: bash
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -115,3 +111,37 @@ jobs:
           path: |
             target/release/sandbox
 #            target/release/assets
+  build_win64:
+    name: Build Nightly for Windows x64
+    runs-on: windows-latest
+    env:
+      SDL_VERSION: 2.26.0
+    steps:
+      - uses: actions/checkout@v4
+      # Thanks https://github.com/TerryCavanagh/VVVVVV/blob/master/.github/workflows/ci.yml
+      - name: Cache SDL
+        id: cache-windows-sdl
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-sdl
+        with:
+          path: C:\SDL2-*
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ env.SDL_VERSION }}
+
+    - if: ${{ steps.cache-windows-sdl.outputs.cache-hit != 'true' }}
+      name: Download SDL if not cached
+      run: |
+        Invoke-WebRequest "https://github.com/libsdl-org/SDL/releases/download/release-$env:SDL_VERSION/SDL2-devel-$env:SDL_VERSION-VC.zip" -OutFile C:\SDL.zip
+        Expand-Archive C:\SDL.zip -DestinationPath C:\
+    - run: rustup update stable
+    - run: |
+      xcopy C:\SDL2-$env:SDL_VERSION\lib\x64\SDL2.dll .
+      xcopy C:\SDL2-$env:SDL_VERSION\lib\x64\SDL2.lib .
+    - run: cargo build --release
+    - run: xcopy SDL2.dll target\release\
+    - uses: actions/upload-artifact@v4
+      with:
+        name: sandbox-windows-x64
+        path: |
+          target/release/sandbox.exe
+          target/release/SDL2.dll

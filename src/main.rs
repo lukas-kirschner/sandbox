@@ -48,7 +48,7 @@ fn main() -> Result<(), String> {
     {
         let gl_attr = video_subsystem.gl_attr();
         gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-        gl_attr.set_context_version(3, 0);
+        gl_attr.set_context_version(2, 1);
     }
     let mut game_world = Ui::new(1800, 960, 4);
     let window = video_subsystem
