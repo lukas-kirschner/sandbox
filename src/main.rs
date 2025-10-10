@@ -62,17 +62,23 @@ fn main() -> Result<(), String> {
         .allow_highdpi()
         .build()
         .map_err(|e| e.to_string())?;
-
+    gl_loader::init_gl();
     let _gl_context = window
         .gl_create_context()
         .map_err(|e| format!("Couldn't create GL context: {:?}", e))?;
-    gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as _);
+    gl::load_with(|s| gl_loader::get_proc_address(s) as *const _);
     let mut imgui = imgui::Context::create();
     imgui.set_ini_filename(None);
     let mut imgui_sdl = imgui_sdl2::ImguiSdl2::new(&mut imgui, &window);
     let renderer = imgui_opengl_renderer::Renderer::new(&mut imgui, |s| {
-        video_subsystem.gl_get_proc_address(s) as _
+        gl_loader::get_proc_address(s) as *const _
     });
+    let mut canvas = window
+        .into_canvas()
+        .present_vsync()
+        .accelerated()
+        .build()
+        .map_err(|e| e.to_string())?;
     let mut world: GameWorld = GameWorld::new(
         game_world.board_width,
         game_world.board_height,
@@ -114,7 +120,7 @@ fn main() -> Result<(), String> {
             world.insert_element_at(&game_world, state.x(), state.y(), Element::None);
         }
 
-        imgui_sdl.prepare_frame(imgui.io_mut(), &window, &event_pump.mouse_state());
+        imgui_sdl.prepare_frame(imgui.io_mut(), canvas.window(), &event_pump.mouse_state());
 
         let now = Instant::now();
         let delta = now - last_frame;
@@ -135,11 +141,14 @@ fn main() -> Result<(), String> {
         // Update the window graphics
         // Draw the new board to the window
         game_world.draw(&mut canvas, &mut texture, &world)?;
-        //TODO canvas.present();
-        imgui_sdl.prepare_render(ui, &window);
+        canvas.present();
+        unsafe { gl::Flush() };
+        // unsafe { canvas.render_flush() }
+        // Render imgui
+        canvas.window_mut().gl_make_current(&_gl_context)?;
+        imgui_sdl.prepare_render(ui, canvas.window());
         renderer.render(&mut imgui);
-		window.gl_swap_window();
-		::std::thread::sleep(::std::time::Duration::new(0, 1_000_000_000u32 / 60));
+        unsafe { gl::Flush() };
     }
     Ok(())
 }
