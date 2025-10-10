@@ -73,12 +73,6 @@ fn main() -> Result<(), String> {
     let renderer = imgui_opengl_renderer::Renderer::new(&mut imgui, |s| {
         video_subsystem.gl_get_proc_address(s) as _
     });
-    let mut canvas = window
-        .into_canvas()
-        .present_vsync()
-        .accelerated()
-        .build()
-        .map_err(|e| e.to_string())?;
     let mut world: GameWorld = GameWorld::new(
         game_world.board_width,
         game_world.board_height,
@@ -120,7 +114,7 @@ fn main() -> Result<(), String> {
             world.insert_element_at(&game_world, state.x(), state.y(), Element::None);
         }
 
-        imgui_sdl.prepare_frame(imgui.io_mut(), canvas.window(), &event_pump.mouse_state());
+        imgui_sdl.prepare_frame(imgui.io_mut(), &window, &event_pump.mouse_state());
 
         let now = Instant::now();
         let delta = now - last_frame;
@@ -141,14 +135,11 @@ fn main() -> Result<(), String> {
         // Update the window graphics
         // Draw the new board to the window
         game_world.draw(&mut canvas, &mut texture, &world)?;
-        // Flush the GL buffer. Workaround for white windows
-        unsafe { gl::Flush() };
-        canvas.present();
-        unsafe { gl::Flush() };
-        canvas.window_mut().gl_make_current(&_gl_context)?;
-        imgui_sdl.prepare_render(ui, canvas.window());
+        //TODO canvas.present();
+        imgui_sdl.prepare_render(ui, &window);
         renderer.render(&mut imgui);
-        unsafe { gl::Flush() };
+		window.gl_swap_window();
+		::std::thread::sleep(::std::time::Duration::new(0, 1_000_000_000u32 / 60));
     }
     Ok(())
 }
