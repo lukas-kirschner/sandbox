@@ -37,6 +37,8 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseButton, MouseState};
 use sdl2::pixels::PixelFormatEnum;
+use std::ffi::CStr;
+use std::mem::transmute;
 use std::time::Instant;
 use strum::IntoEnumIterator;
 
@@ -62,16 +64,23 @@ fn main() -> Result<(), String> {
         .allow_highdpi()
         .build()
         .map_err(|e| e.to_string())?;
-    gl_loader::init_gl();
     let _gl_context = window
         .gl_create_context()
         .map_err(|e| format!("Couldn't create GL context: {:?}", e))?;
-    gl::load_with(|s| gl_loader::get_proc_address(s) as *const _);
+    gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
+    let supported = unsafe {
+        CStr::from_ptr(transmute::<*const u8, *const i8>(gl::GetString(
+            gl::VERSION,
+        )))
+    }
+    .to_str()
+    .unwrap();
+    println!("Got OpenGL version: {:?}", supported);
     let mut imgui = imgui::Context::create();
     imgui.set_ini_filename(None);
     let mut imgui_sdl = imgui_sdl2::ImguiSdl2::new(&mut imgui, &window);
     let renderer = imgui_opengl_renderer::Renderer::new(&mut imgui, |s| {
-        gl_loader::get_proc_address(s) as *const _
+        video_subsystem.gl_get_proc_address(s) as *const _
     });
     let mut canvas = window
         .into_canvas()
