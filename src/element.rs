@@ -30,6 +30,7 @@ pub enum Element {
     WetDust,
     Water,
     SaltWater,
+    Gasoline,
     WaterSource,
     FireSource,
     Steam,
@@ -138,6 +139,7 @@ impl Element {
                 ..
             } => *burned_element_kind,
             Element::FireSource => ElementKind::Solid,
+            Element::Gasoline => ElementKind::Liquid {density: 737.0}
         }
     }
     /// The flammability properties of flammable elements
@@ -170,6 +172,11 @@ impl Element {
             // },
             Element::Flame => Flammability::NotFlammable,
             Element::BurningParticle { .. } => Flammability::NotFlammable,
+            Element::Gasoline => Flammability::Flammable {
+                prob: 0.45,
+                decay_prob: 65,
+                flame_spawn_prob: 0.12,
+            }
         }
     }
     pub const fn density(&self) -> Option<f32> {
@@ -223,6 +230,7 @@ impl Display for Element {
                 Element::Flame => "Fire",
                 Element::BurningParticle { .. } => "INVALID",
                 Element::FireSource => "Fire Source",
+                Element::Gasoline => "Gasoline",
             }
         )
     }
