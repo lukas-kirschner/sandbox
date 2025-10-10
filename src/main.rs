@@ -30,7 +30,9 @@ const HOVERED_BUTTON_BACKGROUND: [f32; 4] = [0.6, 0.6, 0.6, 1.0];
 use crate::element::{Element, ElementKind};
 use crate::ui::Ui;
 use crate::world::GameWorld;
-use imgui::{Condition, StyleColor};
+use imgui::{Condition, Context, StyleColor};
+use imgui_glow_renderer::{AutoRenderer, glow};
+use imgui_sdl2_support::SdlPlatform;
 use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
 use sdl2::event::Event;
@@ -76,12 +78,14 @@ fn main() -> Result<(), String> {
     .to_str()
     .unwrap();
     println!("Got OpenGL version: {:?}", supported);
-    let mut imgui = imgui::Context::create();
+    let gl = unsafe {
+        glow::Context::from_loader_function(|s| video_subsystem.gl_get_proc_address(s) as *const _)
+    };
+    let mut imgui = Context::create();
     imgui.set_ini_filename(None);
-    let mut imgui_sdl = imgui_sdl2::ImguiSdl2::new(&mut imgui, &window);
-    let renderer = imgui_opengl_renderer::Renderer::new(&mut imgui, |s| {
-        video_subsystem.gl_get_proc_address(s) as *const _
-    });
+    imgui.set_log_filename(None);
+    let mut platform = SdlPlatform::new(&mut imgui);
+    let mut renderer = AutoRenderer::new(gl, &mut imgui).unwrap();
     let mut canvas = window
         .into_canvas()
         .present_vsync()
@@ -108,8 +112,7 @@ fn main() -> Result<(), String> {
     'running: loop {
         // get the inputs here
         for event in event_pump.poll_iter() {
-            imgui_sdl.handle_event(&mut imgui, &event);
-            if imgui_sdl.ignore_event(&event) {
+            if platform.handle_event(&mut imgui, &event) {
                 continue;
             }
             match event {
@@ -129,7 +132,7 @@ fn main() -> Result<(), String> {
             world.insert_element_at(&game_world, state.x(), state.y(), Element::None);
         }
 
-        imgui_sdl.prepare_frame(imgui.io_mut(), canvas.window(), &event_pump.mouse_state());
+        platform.prepare_frame(&mut imgui, canvas.window(), &event_pump);
 
         let now = Instant::now();
         let delta = now - last_frame;
@@ -155,8 +158,8 @@ fn main() -> Result<(), String> {
         // unsafe { canvas.render_flush() }
         // Render imgui
         canvas.window_mut().gl_make_current(&_gl_context)?;
-        imgui_sdl.prepare_render(ui, canvas.window());
-        renderer.render(&mut imgui);
+        let draw_data = imgui.render();
+        renderer.render(draw_data)?;
         unsafe { gl::Flush() };
     }
     Ok(())
