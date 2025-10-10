@@ -34,6 +34,9 @@ enum Transmutation {
         outcome_b: Option<Element>,
     },
 }
+
+const LIQUID_SOURCE_SPAWN_PROBABILITY: f64 = 0.015;
+
 /// Given adjacent elements a and b, can a transmute b?
 fn can_transmute(a: &Element, b: &Element) -> Transmutation {
     match a {
@@ -83,9 +86,18 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
         Element::WaterSource => match b {
             // Water Source spawns water
             Element::None => Transmutation::WithProbability {
-                probability: 0.015,
+                probability: LIQUID_SOURCE_SPAWN_PROBABILITY,
                 outcome_a: Some(Element::WaterSource),
                 outcome_b: Some(Element::Water),
+            },
+            _ => Transmutation::None,
+        },
+        Element::GasolineSource => match b {
+            // Gasoline Source spawns gasoline
+            Element::None => Transmutation::WithProbability {
+                probability: LIQUID_SOURCE_SPAWN_PROBABILITY,
+                outcome_a: Some(Element::GasolineSource),
+                outcome_b: Some(Element::Gasoline),
             },
             _ => Transmutation::None,
         },
