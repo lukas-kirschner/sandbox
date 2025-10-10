@@ -37,6 +37,8 @@ pub enum Element {
     Steam,
     Hydrogen,
     Methane,
+    HydrogenBurner,
+    MethaneBurner,
     Flame,
     /// A burning particle with a probability of 1/n of decaying and 1/m of spawning a flame
     BurningParticle {
@@ -144,6 +146,8 @@ impl Element {
             } => *burned_element_kind,
             Element::FireSource => ElementKind::Solid,
             Element::Gasoline => ElementKind::Liquid { density: 737.0 },
+            Element::HydrogenBurner => ElementKind::Solid,
+            Element::MethaneBurner => ElementKind::Solid,
         }
     }
     /// The flammability properties of flammable elements
@@ -187,6 +191,8 @@ impl Element {
                 decay_prob: 65,
                 flame_spawn_prob: 0.12,
             },
+            Element::HydrogenBurner => Flammability::NotFlammable,
+            Element::MethaneBurner => Flammability::NotFlammable,
         }
     }
     pub const fn density(&self) -> Option<f32> {
@@ -243,6 +249,8 @@ impl Display for Element {
                 Element::Gasoline => "Gasoline",
                 Element::GasolineSource => "Gas Station",
                 Element::Methane => "Methane",
+                Element::HydrogenBurner => "Hydrogen Burner",
+                Element::MethaneBurner => "Methane Burner",
             }
         )
     }
