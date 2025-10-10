@@ -115,7 +115,7 @@ jobs:
     name: Build Nightly for Windows x64
     runs-on: windows-latest
     env:
-      SDL_VERSION: 2.26.0
+      SDL_VERSION: 2.32.8
     steps:
       - uses: actions/checkout@v4
       # Thanks https://github.com/TerryCavanagh/VVVVVV/blob/master/.github/workflows/ci.yml
