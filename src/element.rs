@@ -131,7 +131,7 @@ impl Element {
             Element::Steam => ElementKind::Gas { density: 0.6 },
             Element::Hydrogen => ElementKind::Gas { density: 0.08988 },
             Element::Dust => ElementKind::Powder { density: 3.0 },
-            Element::WetDust => ElementKind::Powder { density: 1000.0 },
+            Element::WetDust => ElementKind::Powder { density: 1035.0 },
             Element::Flame => ElementKind::Gas { density: 0.1 },
             Element::BurningParticle {
                 burned_element_kind,
