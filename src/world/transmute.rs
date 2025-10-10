@@ -207,6 +207,7 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
             },
         },
         Element::Gasoline => Transmutation::None,
+        Element::Methane => Transmutation::None,
     }
 }
 
