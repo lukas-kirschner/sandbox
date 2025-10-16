@@ -60,6 +60,14 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
                 outcome_a: None,
                 outcome_b: Some(Element::Steam),
             },
+            // Water extinguishes burning elements
+            Element::BurningParticle {
+                flame_spawn_prob, ..
+            } => Transmutation::WithProbability {
+                probability: (1.0 - flame_spawn_prob) * 0.1,
+                outcome_a: None,
+                outcome_b: Some(Element::Steam),
+            },
             // Water boils when touching hot surfaces
             Element::FireSource => Transmutation::WithProbability {
                 probability: 0.01,

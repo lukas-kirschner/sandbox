@@ -179,11 +179,6 @@ impl Element {
                 decay_prob: 8,
                 flame_spawn_prob: 0.62,
             },
-            // Element::Hydrogen => Flammability::Flammable {
-            //     prob: 0.95,
-            //     decay_prob: 5,
-            //     flame_spawn_prob: 0.95,
-            // },
             Element::Flame => Flammability::NotFlammable,
             Element::BurningParticle { .. } => Flammability::NotFlammable,
             Element::Gasoline => Flammability::Flammable {
