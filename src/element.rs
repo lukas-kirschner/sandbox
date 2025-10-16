@@ -132,7 +132,7 @@ impl Element {
             // A burning Particle decays to whatever it contains as decays_to
             Element::BurningParticle { spawns_ash, .. } => match spawns_ash {
                 false => None,
-                true => Some(Element::Salt),
+                true => Some(Element::Ash),
             },
             _ => None,
         }
