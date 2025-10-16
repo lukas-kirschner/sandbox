@@ -28,6 +28,7 @@ pub enum Element {
     Sand,
     Salt,
     Dust,
+    Ash,
     WetDust,
     Water,
     SaltWater,
@@ -46,6 +47,7 @@ pub enum Element {
         burned_element_kind: ElementKind,
         decay_prob: usize,
         flame_spawn_prob: f64,
+        spawns_ash: bool,
     },
 }
 
@@ -124,6 +126,17 @@ impl Element {
             _ => None,
         }
     }
+
+    pub const fn decays_to(&self) -> Option<Element> {
+        match self {
+            // A burning Particle decays to whatever it contains as decays_to
+            Element::BurningParticle { spawns_ash, .. } => match spawns_ash {
+                false => None,
+                true => Some(Element::Salt),
+            },
+            _ => None,
+        }
+    }
     /// The element kind and associated properties (density, ...)
     pub const fn kind(&self) -> ElementKind {
         match self {
@@ -150,6 +163,7 @@ impl Element {
             Element::HydrogenBurner => ElementKind::Solid,
             Element::MethaneBurner => ElementKind::Solid,
             Element::Wood => ElementKind::Solid,
+            Element::Ash => ElementKind::Powder { density: 1.5 },
         }
     }
     /// The flammability properties of flammable elements
@@ -190,11 +204,12 @@ impl Element {
             },
             Element::HydrogenBurner => Flammability::NotFlammable,
             Element::MethaneBurner => Flammability::NotFlammable,
-            Element::Wood =>Flammability::Flammable {
+            Element::Wood => Flammability::Flammable {
                 prob: 0.0025,
                 decay_prob: 1000,
                 flame_spawn_prob: 0.05,
-            }
+            },
+            Element::Ash => Flammability::NotFlammable,
         }
     }
     pub const fn density(&self) -> Option<f32> {
@@ -254,6 +269,7 @@ impl Display for Element {
                 Element::HydrogenBurner => "Hydrogen Burner",
                 Element::MethaneBurner => "Methane Burner",
                 Element::Wood => "Wood",
+                Element::Ash => "Ash",
             }
         )
     }

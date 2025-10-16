@@ -204,6 +204,7 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
                     burned_element_kind: b.kind(),
                     decay_prob,
                     flame_spawn_prob,
+                    spawns_ash: matches!(b, Element::Wood),
                 }),
             },
         },
@@ -230,12 +231,34 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
                         burned_element_kind: b.kind(),
                         decay_prob,
                         flame_spawn_prob,
+                        spawns_ash: matches!(e, Element::Wood),
                     }),
                 },
             },
         },
         Element::Gasoline => Transmutation::None,
         Element::Methane => Transmutation::None,
+        Element::Ash => match b {
+            // Ash has a small chance of despawning when touching a flame
+            Element::Flame => Transmutation::WithProbability {
+                probability: 0.1,
+                outcome_a: None,
+                outcome_b: Some(Element::Flame),
+            },
+            // Ash has a small chance of dissolving in water and salt water
+            Element::Water => Transmutation::WithProbability {
+                probability: 0.001,
+                outcome_a: None,
+                outcome_b: Some(*b),
+            },
+            // Ash has a small chance of dissolving in water and salt water
+            Element::SaltWater => Transmutation::WithProbability {
+                probability: 0.001,
+                outcome_a: None,
+                outcome_b: Some(*b),
+            },
+            _ => Transmutation::None,
+        },
     }
 }
 
@@ -245,7 +268,10 @@ impl GameWorld {
         if let Some(decay_prob) = self.board[x][y].decay_prob() {
             if rng.random_bool(decay_prob) {
                 // Decay the element
-                self.board[x][y] = Element::None;
+                match self.board[x][y].decays_to() {
+                    None => self.board[x][y] = Element::None,
+                    Some(e) => self.board[x][y] = e,
+                }
             }
         }
     }

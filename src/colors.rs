@@ -36,6 +36,7 @@ impl Element {
             Element::Methane => Color::RGB(0x15, 0x60, 0x00),
             Element::MethaneBurner => Color::RGB(0x10, 0x50, 0x00),
             Element::Dust => Color::RGB(0xd8, 0xe4, 0xea),
+            Element::Ash => Color::RGB(0xbf, 0xbf, 0xbf),
             Element::WetDust => Color::RGB(0xc8, 0xd4, 0xfa),
             Element::Flame => Color::RGB(0xf2, 0x92, 0x1d),
             Element::BurningParticle { .. } => Color::RGB(0xd9, 0x67, 0x04),
