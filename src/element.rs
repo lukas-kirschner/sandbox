@@ -24,6 +24,7 @@ pub const FLAME_DECAY_PROB: usize = 10;
 pub enum Element {
     None,
     BrickWall,
+    Wood,
     Sand,
     Salt,
     Dust,
@@ -148,6 +149,7 @@ impl Element {
             Element::Gasoline => ElementKind::Liquid { density: 737.0 },
             Element::HydrogenBurner => ElementKind::Solid,
             Element::MethaneBurner => ElementKind::Solid,
+            Element::Wood => ElementKind::Solid,
         }
     }
     /// The flammability properties of flammable elements
@@ -188,6 +190,11 @@ impl Element {
             },
             Element::HydrogenBurner => Flammability::NotFlammable,
             Element::MethaneBurner => Flammability::NotFlammable,
+            Element::Wood =>Flammability::Flammable {
+                prob: 0.0025,
+                decay_prob: 1000,
+                flame_spawn_prob: 0.05,
+            }
         }
     }
     pub const fn density(&self) -> Option<f32> {
@@ -246,6 +253,7 @@ impl Display for Element {
                 Element::Methane => "Methane",
                 Element::HydrogenBurner => "Hydrogen Burner",
                 Element::MethaneBurner => "Methane Burner",
+                Element::Wood => "Wood",
             }
         )
     }

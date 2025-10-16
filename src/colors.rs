@@ -25,6 +25,7 @@ impl Element {
             Element::None => BOARD_BACKGROUND_COLOR,
             Element::Sand => Color::RGB(0xda, 0xca, 0xb3),
             Element::BrickWall => Color::RGB(0x8c, 0x3d, 0x20),
+            Element::Wood => Color::RGB(0x8c, 0x5b, 0x30),
             Element::Water => Color::RGB(0x05, 0xaf, 0xf2),
             Element::SaltWater => Color::RGB(0x04, 0x9f, 0xc0),
             Element::Salt => Color::RGB(0xd7, 0xd7, 0xd9),

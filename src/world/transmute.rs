@@ -43,6 +43,7 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
     match a {
         Element::None => Transmutation::None,
         Element::BrickWall => Transmutation::None,
+        Element::Wood => Transmutation::None,
         Element::Sand => Transmutation::None,
         Element::Salt => match b {
             // Salt and water transforms into saltwater:
