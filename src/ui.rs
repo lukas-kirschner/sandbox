@@ -16,10 +16,12 @@
 
 use crate::colors::BOARD_BORDER_COLOR;
 use crate::world::GameWorld;
+use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::{Canvas, RenderTarget, Texture, WindowCanvas};
 use std::cmp::{max, min};
 
+pub const CURSOR_PREVIEW_COLOR: Color = Color::RGBA(0xff, 0xff, 0xff, 0x30);
 pub struct Ui {
     pub win_width: usize,
     pub win_height: usize,
@@ -37,7 +39,6 @@ impl Ui {
         canvas: &mut Canvas<T>,
         x: i32,
         y: i32,
-        texture: &mut Texture,
         world: &GameWorld,
     ) -> Result<(), String> {
         if let Some((x, y)) = self.window_to_board_coordinate(x, y) {
@@ -46,7 +47,7 @@ impl Ui {
             let ymin = max(0, y - self.cursor_size() + 1);
             let ymax = min(world.board_height() as i32 - 1, y + self.cursor_size() - 1);
             // canvas.with_texture_canvas(texture,|canvas| {
-            canvas.set_draw_color((0xff, 0xff, 0xff, 0x30));
+            canvas.set_draw_color(CURSOR_PREVIEW_COLOR);
             canvas.fill_rect(Rect::new(
                 xmin * self.scaling_factor as i32 + self.left_padding(),
                 ymin * self.scaling_factor as i32 + self.top_padding(),

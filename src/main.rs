@@ -153,7 +153,7 @@ fn main() -> Result<(), String> {
         // Update the window graphics
         // Draw the new board to the window
         game_world.draw(&mut canvas, &mut texture, &world)?;
-        game_world.draw_mouse_preview_at(&mut canvas, state.x(), state.y(), &mut texture, &world)?;
+        game_world.draw_mouse_preview_at(&mut canvas, state.x(), state.y(), &world)?;
         canvas.present();
         unsafe { gl::Flush() };
         // unsafe { canvas.render_flush() }
