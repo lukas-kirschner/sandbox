@@ -73,6 +73,15 @@ pub struct GameWorld {
 }
 
 impl GameWorld {
+    pub(crate) fn board_height(&self) -> usize {
+        self.board[0].len()
+    }
+    pub(crate) fn board_width(&self) -> usize {
+        self.board.len()
+    }
+}
+
+impl GameWorld {
     pub fn insert_element_at(&mut self, ui: &Ui, window_x: i32, window_y: i32, element: Element) {
         if let Some((x, y)) = ui.window_to_board_coordinate(window_x, window_y) {
             for drw_y in max(0, y - ui.cursor_size() + 1)

@@ -17,7 +17,8 @@
 use crate::colors::BOARD_BORDER_COLOR;
 use crate::world::GameWorld;
 use sdl2::rect::{Point, Rect};
-use sdl2::render::{Texture, WindowCanvas};
+use sdl2::render::{Canvas, RenderTarget, Texture, WindowCanvas};
+use std::cmp::{max, min};
 
 pub struct Ui {
     pub win_width: usize,
@@ -28,6 +29,34 @@ pub struct Ui {
     pub board_height: usize,
     cursor_size: i32,
     pub(crate) scaling_factor: usize,
+}
+
+impl Ui {
+    pub(crate) fn draw_mouse_preview_at<T: RenderTarget>(
+        &self,
+        canvas: &mut Canvas<T>,
+        x: i32,
+        y: i32,
+        texture: &mut Texture,
+        world: &GameWorld,
+    ) -> Result<(), String> {
+        if let Some((x, y)) = self.window_to_board_coordinate(x, y) {
+            let xmin = max(0, x - self.cursor_size() + 1);
+            let xmax = min(world.board_width() as i32 - 1, x + self.cursor_size() - 1);
+            let ymin = max(0, y - self.cursor_size() + 1);
+            let ymax = min(world.board_height() as i32 - 1, y + self.cursor_size() - 1);
+            // canvas.with_texture_canvas(texture,|canvas| {
+            canvas.set_draw_color((0xff, 0xff, 0xff, 0x30));
+            canvas.fill_rect(Rect::new(
+                xmin * self.scaling_factor as i32 + self.left_padding(),
+                ymin * self.scaling_factor as i32 + self.top_padding(),
+                (xmax - xmin + 1) as u32 * self.scaling_factor as u32,
+                (ymax - ymin + 1) as u32 * self.scaling_factor as u32,
+            ))?;
+            // }).unwrap();
+        }
+        Ok(())
+    }
 }
 
 impl Ui {
@@ -62,6 +91,20 @@ impl Ui {
             Some(ret)
         }
     }
+    fn left_padding(&self) -> i32 {
+        ((self.win_width - self.board_width) / 2) as i32 - 1
+    }
+    fn right_padding(&self) -> i32 {
+        (self.win_width as i32 - self.left_padding())
+            + ((self.win_width - self.board_width) % 2) as i32
+    }
+    fn top_padding(&self) -> i32 {
+        ((self.win_height - self.board_height) / 2) as i32 - 1
+    }
+    fn bottom_padding(&self) -> i32 {
+        (self.win_height as i32 - self.top_padding())
+            + ((self.win_height - self.board_height) % 2) as i32
+    }
     pub fn new(width: usize, height: usize, scaling_factor: usize) -> Self {
         Self {
             win_width: width,
@@ -79,12 +122,10 @@ impl Ui {
         texture: &mut Texture,
         world: &GameWorld,
     ) -> Result<(), String> {
-        let left_padding: i32 = ((self.win_width - self.board_width) / 2) as i32 - 1;
-        let top_padding: i32 = ((self.win_height - self.board_height) / 2) as i32 - 1;
-        let right_padding: i32 = (self.win_width as i32 - left_padding)
-            + ((self.win_width - self.board_width) % 2) as i32;
-        let bottom_padding: i32 = (self.win_height as i32 - top_padding)
-            + ((self.win_height - self.board_height) % 2) as i32;
+        let left_padding: i32 = self.left_padding();
+        let top_padding: i32 = self.top_padding();
+        let right_padding: i32 = self.right_padding();
+        let bottom_padding: i32 = self.bottom_padding();
 
         // Draw a border around the board
         canvas.set_draw_color(BOARD_BORDER_COLOR);
