@@ -55,6 +55,7 @@ fn main() -> Result<(), String> {
         gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
         gl_attr.set_context_version(1, 1);
     }
+    sdl2::hint::set("SDL_RENDER_DRIVER", "opengl");
     let mut game_world = Ui::new(1800, 960, 4);
     let window = video_subsystem
         .window(
