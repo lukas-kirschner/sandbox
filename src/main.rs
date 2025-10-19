@@ -24,13 +24,14 @@ mod world;
 // UI colors:
 const INACTIVE_BUTTON_BACKGROUND: [f32; 4] = [0.2, 0.2, 0.2, 1.0];
 const ACTIVE_BUTTON_BACKGROUND: [f32; 4] = [0.5, 0.5, 0.5, 1.0];
+const TEXT_FOREGROUND: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const HOVERED_BUTTON_BACKGROUND: [f32; 4] = [0.6, 0.6, 0.6, 1.0];
 // const TOOLTIP_TEXT_DENSITY: [f32; 4] = [0.7, 0.7, 0.2, 1.0];
 
 use crate::element::{Element, ElementKind};
 use crate::ui::Ui;
 use crate::world::GameWorld;
-use imgui::{Condition, Context, StyleColor};
+use imgui::{Condition, Context, Style, StyleColor};
 use imgui_glow_renderer::{AutoRenderer, glow};
 use imgui_sdl2_support::SdlPlatform;
 use rand::SeedableRng;
@@ -84,6 +85,7 @@ fn main() -> Result<(), String> {
     let mut imgui = Context::create();
     imgui.set_ini_filename(None);
     imgui.set_log_filename(None);
+    set_imgui_style(imgui.style_mut());
     let mut platform = SdlPlatform::new(&mut imgui);
     let mut renderer = AutoRenderer::new(gl, &mut imgui).unwrap();
     let mut canvas = window
@@ -164,6 +166,13 @@ fn main() -> Result<(), String> {
         unsafe { gl::Flush() };
     }
     Ok(())
+}
+
+fn set_imgui_style(style: &mut Style) {
+    style.use_dark_colors();
+    style[StyleColor::Text] = TEXT_FOREGROUND;
+    style[StyleColor::Button] = INACTIVE_BUTTON_BACKGROUND;
+    style[StyleColor::ButtonHovered] = HOVERED_BUTTON_BACKGROUND;
 }
 
 fn build_element_buttons(ui: &imgui::Ui, game_world: &Ui, selected: &mut Element) {
