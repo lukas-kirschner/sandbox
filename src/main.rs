@@ -23,12 +23,13 @@ mod world;
 
 // UI colors:
 const TOOLTIP_TEXT_DENSITY: Color32 = Color32::from_rgb(0xAA, 0xAA, 0x44);
+const TOOLTIP_TEXT_DESCRIPTION: Color32 = Color32::from_rgb(0x66, 0x66, 0x66);
 
 use crate::element::{Element, ElementKind};
 use crate::ui::Ui;
 use crate::world::GameWorld;
 use egui::FontFamily::Proportional;
-use egui::{Align, Color32, FontId, Layout, TextStyle};
+use egui::{Align, Color32, FontId, Layout, RichText, TextStyle};
 use egui_sdl2_canvas::Painter;
 use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
@@ -192,7 +193,7 @@ fn build_element_buttons(context: &egui::Context, game_world: &Ui, selected: &mu
                     if tv.clicked() && is_selected {
                         *selected = e;
                     }
-                    tv.on_hover_ui(|ui| {
+                    tv.on_hover_ui_at_pointer(|ui| {
                         ui.label(format!("{}", e));
                         if e.show_density() {
                             if let Some(density) = e.density() {
@@ -202,6 +203,11 @@ fn build_element_buttons(context: &egui::Context, game_world: &Ui, selected: &mu
                                 );
                             }
                         }
+                        // Show wrapped text as description:
+                        ui.set_max_width(200.0);
+                        ui.separator();
+                        ui.style_mut().wrap = Some(true);
+                        ui.label(RichText::new(e.ui_description()).color(TOOLTIP_TEXT_DESCRIPTION));
                     });
                 }
                 ui.separator();
@@ -224,9 +230,14 @@ fn build_top_settings_pane(context: &egui::Context, game_world: &mut Ui) {
                 ui.label("Cursor:");
                 for e in [1, 2, 3, 4, 5, 10, 15, 20] {
                     let mut sel = e == game_world.cursor_size();
-                    if ui.toggle_value(&mut sel, format!("{}", e)).clicked() && sel {
+                    let tv = ui.toggle_value(&mut sel, format!("{}", e));
+                    if tv.clicked() && sel {
                         game_world.set_cursor_size(e);
                     }
+                    tv.on_hover_text_at_pointer(format!(
+                        "Set the cursor size to a {}x{} square",
+                        e, e
+                    ));
                 }
             });
         });

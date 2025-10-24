@@ -255,6 +255,35 @@ impl Element {
             ElementKind::Gas { .. } => matches!(kind, ElementKind::Gas { .. }),
         }
     }
+    pub const fn ui_description(&self) -> &'static str {
+        match self {
+            Element::None => "Erase the current element",
+            Element::BrickWall => {
+                "A solid brick wall. Inert to all other elements, acts as a solid."
+            },
+            Element::Wood => "A wooden wall. Blocks most elements, but can be lit on fire.",
+            Element::Sand => "Inert to all elements and moderately heavy.",
+            Element::Salt => "Can be dissolved to salt water.",
+            Element::Dust => "A very light and flammable powder that can be soaked in water.",
+            Element::Ash => "An extremely light powder that is created by burning wood.",
+            Element::WetDust => "Dust that has been soaked in water. Leaks water over time.",
+            Element::Water => "The element of life.",
+            Element::SaltWater => "A solution of water and salt.",
+            Element::Gasoline => "A highly flammable fuel.",
+            Element::WaterSource => "A source of water.",
+            Element::GasolineSource => "A source of gasoline.",
+            Element::FireSource => "A burning solid that never extinguishes",
+            Element::Steam => {
+                "Water vapor that condensates over time and when touching cold elements."
+            },
+            Element::Hydrogen => "An extremely flammable gas.",
+            Element::Methane => "A flammable gas that burns slower and longer.",
+            Element::HydrogenBurner => "A source of hydrogen.",
+            Element::MethaneBurner => "A source of methane.",
+            Element::Flame => "Fire.",
+            Element::BurningParticle { .. } => "A burning particle.",
+        }
+    }
 }
 
 impl Display for Element {
