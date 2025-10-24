@@ -32,7 +32,6 @@ use crate::element::{Element, ElementKind};
 use crate::ui::Ui;
 use crate::world::GameWorld;
 use imgui::{Condition, Context, Style, StyleColor};
-use imgui_glow_renderer::{AutoRenderer, glow};
 use imgui_sdl2_support::SdlPlatform;
 use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
@@ -40,9 +39,8 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseButton, MouseState};
 use sdl2::pixels::PixelFormatEnum;
-use std::ffi::CStr;
-use std::mem::transmute;
 use std::time::Instant;
+use imgui_sdl2_canvas_renderer::CanvasRenderer;
 use strum::IntoEnumIterator;
 
 pub const FONT_SIZE: f32 = 13.0;
@@ -55,7 +53,6 @@ fn main() -> Result<(), String> {
         gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
         gl_attr.set_context_version(1, 1);
     }
-    sdl2::hint::set("SDL_RENDER_DRIVER", "opengl");
     let mut game_world = Ui::new(1800, 960, 4);
     let window = video_subsystem
         .window(
@@ -68,33 +65,21 @@ fn main() -> Result<(), String> {
         .allow_highdpi()
         .build()
         .map_err(|e| e.to_string())?;
-    let _gl_context = window
+    let gl_context = window
         .gl_create_context()
         .map_err(|e| format!("Couldn't create GL context: {:?}", e))?;
-    gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const _);
-    let supported = unsafe {
-        CStr::from_ptr(transmute::<*const u8, *const i8>(gl::GetString(
-            gl::VERSION,
-        )))
-    }
-    .to_str()
-    .unwrap();
-    println!("Got OpenGL version: {:?}", supported);
-    let gl = unsafe {
-        glow::Context::from_loader_function(|s| video_subsystem.gl_get_proc_address(s) as *const _)
-    };
     let mut imgui = Context::create();
     imgui.set_ini_filename(None);
     imgui.set_log_filename(None);
     set_imgui_style(imgui.style_mut());
     let mut platform = SdlPlatform::new(&mut imgui);
-    let mut renderer = AutoRenderer::new(gl, &mut imgui).unwrap();
     let mut canvas = window
         .into_canvas()
         .present_vsync()
         .accelerated()
         .build()
         .map_err(|e| e.to_string())?;
+    let mut renderer = CanvasRenderer::new(&mut imgui, &mut canvas)?;
     let mut world: GameWorld = GameWorld::new(
         game_world.board_width,
         game_world.board_height,
@@ -149,7 +134,7 @@ fn main() -> Result<(), String> {
             world.tick(&mut rng);
         }
 
-        let ui = imgui.frame();
+        let ui = imgui.new_frame();
         build_element_buttons(ui, &game_world, &mut current_elem);
         build_top_settings_pane(ui, &mut game_world);
 
@@ -157,14 +142,13 @@ fn main() -> Result<(), String> {
         // Draw the new board to the window
         game_world.draw(&mut canvas, &mut texture, &world)?;
         game_world.draw_mouse_preview_at(&mut canvas, state.x(), state.y(), &world)?;
-        canvas.present();
-        unsafe { gl::Flush() };
-        // unsafe { canvas.render_flush() }
+
         // Render imgui
-        canvas.window_mut().gl_make_current(&_gl_context)?;
+        canvas.window_mut().gl_make_current(&gl_context)?;
         let draw_data = imgui.render();
-        renderer.render(draw_data)?;
-        unsafe { gl::Flush() };
+        renderer.render(draw_data, &mut canvas)?;
+
+        canvas.present();
     }
     Ok(())
 }
