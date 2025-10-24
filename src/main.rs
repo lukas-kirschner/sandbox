@@ -36,6 +36,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseButton, MouseState};
 use sdl2::pixels::PixelFormatEnum;
+use std::time::Instant;
 use strum::IntoEnumIterator;
 
 pub const FONT_SIZE: f32 = 13.0;
@@ -101,7 +102,10 @@ fn main() -> Result<(), String> {
     let mut rng = XorShiftRng::seed_from_u64(0);
     let mut current_elem = Element::Sand;
     let mut event_pump = sdl_context.event_pump()?;
+
+    let start_time = Instant::now();
     'running: loop {
+        platform.update_time(start_time.elapsed().as_secs_f64());
         // get the inputs here
         for event in event_pump.poll_iter() {
             platform.handle_event(&event, &sdl_context, &video_subsystem);
@@ -122,17 +126,19 @@ fn main() -> Result<(), String> {
             world.insert_element_at(&game_world, state.x(), state.y(), Element::None);
         }
 
-        let output = platform.end_frame(&mut video_subsystem).unwrap();
-        let v_primitives = platform.tessellate(&output);
-
         // let no_ticks = TICKS_PER_SECOND as f32 * delta_s;
         // Tick once for scaling 4, 4x for scaling 1
         for _ in 0..(5i32 - game_world.scaling_factor as i32).max(1) {
             world.tick(&mut rng);
         }
 
-        build_element_buttons(&platform.context(), &game_world, &mut current_elem);
-        build_top_settings_pane(&platform.context(), &mut game_world);
+        // platform::context() has SIDE EFFECTS - Calling it twice causes button clicks to be ignored!
+        let ctx = platform.context();
+        build_element_buttons(&ctx, &game_world, &mut current_elem);
+        build_top_settings_pane(&ctx, &mut game_world);
+
+        let output = platform.end_frame(&mut video_subsystem).unwrap();
+        let v_primitives = platform.tessellate(&output);
 
         // Update the window graphics
         // Draw the new board to the window
