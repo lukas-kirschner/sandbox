@@ -34,6 +34,15 @@ pub struct Ui {
 }
 
 impl Ui {
+    pub const fn top_buttonbar_height(&self) -> f32 {
+        ((self.win_height - self.board_height) / 2 - 1) as f32
+    }
+    pub const fn right_buttonbar_width(&self) -> f32 {
+        ((self.win_width - self.board_width) / 2 - 2) as f32
+    }
+    pub const fn left_buttonbar_width(&self) -> f32 {
+        ((self.win_width - self.board_width) / 2 - 2) as f32
+    }
     pub(crate) fn draw_mouse_preview_at<T: RenderTarget>(
         &self,
         canvas: &mut Canvas<T>,
