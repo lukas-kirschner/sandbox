@@ -216,13 +216,8 @@ fn build_top_settings_pane(context: &egui::Context, game_world: &mut Ui) {
                 ui.add_space(game_world.left_buttonbar_width());
                 ui.label("Cursor:");
                 for e in [1, 2, 3, 4, 5, 10, 15, 20] {
-                    if ui
-                        .add(egui::SelectableLabel::new(
-                            e == game_world.cursor_size(),
-                            format!("{}", e),
-                        ))
-                        .clicked()
-                    {
+                    let mut sel = e == game_world.cursor_size();
+                    if ui.toggle_value(&mut sel, format!("{}", e)).clicked() && sel {
                         game_world.set_cursor_size(e);
                     }
                 }
