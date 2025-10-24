@@ -27,6 +27,7 @@ default-features = true
 needless_range_loop = "allow"
 collapsible_else_if = "allow"
 collapsible_if = "allow"
+match_like_matches_macro = "allow"
 
 [package.metadata.wix]
 culture = "En-Us"

@@ -137,6 +137,20 @@ impl Element {
             _ => None,
         }
     }
+    pub const fn show_in_ui(&self) -> bool {
+        match self {
+            Element::None => false,
+            Element::BurningParticle { .. } => false,
+            _ => true,
+        }
+    }
+    /// If the density should be shown in the UI
+    pub const fn show_density(&self) -> bool {
+        match self {
+            Element::Flame => false,
+            _ => self.density().is_some(),
+        }
+    }
     /// The element kind and associated properties (density, ...)
     pub const fn kind(&self) -> ElementKind {
         match self {

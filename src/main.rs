@@ -184,8 +184,7 @@ fn build_element_buttons(context: &egui::Context, game_world: &Ui, selected: &mu
                 });
                 ui.add_space(ui.spacing().item_spacing.y);
                 for e in Element::iter().filter(|e| e.is_kind_of(&kind)) {
-                    if e == Element::None || matches!(e, Element::BurningParticle { .. }) {
-                        //TODO add function to determine whether to show elements in the UI
+                    if !e.show_in_ui() {
                         continue;
                     }
                     let mut is_selected = &e == selected;
@@ -195,11 +194,13 @@ fn build_element_buttons(context: &egui::Context, game_world: &Ui, selected: &mu
                     }
                     tv.on_hover_ui(|ui| {
                         ui.label(format!("{}", e));
-                        if let Some(density) = e.density() {
-                            ui.colored_label(
-                                TOOLTIP_TEXT_DENSITY,
-                                format!("density {:.2}kg/m³", density),
-                            );
+                        if e.show_density() {
+                            if let Some(density) = e.density() {
+                                ui.colored_label(
+                                    TOOLTIP_TEXT_DENSITY,
+                                    format!("density {:.2}kg/m³", density),
+                                );
+                            }
                         }
                     });
                 }
