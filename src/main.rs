@@ -14,6 +14,7 @@
 //   You should have received a copy of the GNU General Public License
 //   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+mod canvas_display;
 mod colors;
 mod element;
 mod ui;
@@ -26,11 +27,12 @@ const TOOLTIP_TEXT_DENSITY: Color32 = Color32::from_rgb(0xAA, 0xAA, 0x44);
 const TOOLTIP_TEXT_DESCRIPTION: Color32 = Color32::from_rgb(0x66, 0x66, 0x66);
 
 use crate::element::{Element, ElementKind};
-use crate::ui::Ui;
+use crate::ui::{CursorKind, Ui};
 use crate::world::GameWorld;
 use egui::FontFamily::Proportional;
-use egui::{Align, Color32, FontId, Layout, RichText, TextStyle};
+use egui::{Align, Color32, FontId, Layout, RichText, TextStyle, Vec2};
 use egui_sdl2_canvas::Painter;
+use itertools::Itertools;
 use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
 use sdl2::event::Event;
@@ -144,7 +146,7 @@ fn main() -> Result<(), String> {
         // Update the window graphics
         // Draw the new board to the window
         game_world.draw(&mut canvas, &mut texture, &world)?;
-        game_world.draw_mouse_preview_at(&mut canvas, state.x(), state.y(), &world)?;
+        game_world.draw_mouse_preview_at(&mut canvas, state.x(), state.y())?;
 
         // Render imgui
         canvas.window_mut().gl_make_current(&gl_context)?;
@@ -223,21 +225,32 @@ fn build_top_settings_pane(context: &egui::Context, game_world: &mut Ui) {
         .exact_height(buttonbar_height)
         .show(context, |ui| {
             // Add top margin
-            ui.add_space(ui.spacing().item_spacing.y * 2.);
             ui.with_layout(Layout::left_to_right(Align::TOP), |ui| {
                 // Start items at left board edge
                 ui.add_space(game_world.left_buttonbar_width());
-                ui.label("Cursor:");
-                for e in [1, 2, 3, 4, 5, 10, 15, 20] {
-                    let mut sel = e == game_world.cursor_size();
-                    let tv = ui.toggle_value(&mut sel, format!("{}", e));
-                    if tv.clicked() && sel {
-                        game_world.set_cursor_size(e);
-                    }
-                    tv.on_hover_text_at_pointer(format!(
-                        "Set the cursor size to a {}x{} square",
-                        e, e
-                    ));
+                ui.with_layout(Layout::top_down(Align::LEFT), |ui| {
+                    ui.add_space(ui.spacing().item_spacing.y * 2.);
+                    ui.label("Cursor:");
+                });
+                let cursors = CursorKind::ui_cursors()
+                    .iter()
+                    .chunk_by(|c| c.category_text());
+                for (key, group) in cursors.into_iter() {
+                    ui.separator();
+                    ui.with_layout(Layout::top_down(Align::LEFT), |ui| {
+                        ui.style_mut().spacing.item_spacing = Vec2::splat(0.0);
+                        ui.label(format!("{}:", key));
+                        ui.with_layout(Layout::left_to_right(Align::TOP), |ui| {
+                            for cur in group {
+                                let mut sel = cur == game_world.cursor();
+                                let tv = ui.toggle_value(&mut sel, cur.button_text());
+                                if tv.clicked() && sel {
+                                    game_world.set_cursor(*cur);
+                                }
+                                tv.on_hover_text_at_pointer(cur.tooltip_text());
+                            }
+                        });
+                    });
                 }
             });
         });

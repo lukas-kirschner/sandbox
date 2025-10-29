@@ -15,9 +15,16 @@
 //   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::element::{AIR_DENSITY, Element, ElementKind};
-use crate::ui::Ui;
+use crate::ui::{CursorKind, Ui};
+use embedded_graphics::draw_target::DrawTarget;
+use embedded_graphics::geometry::{Dimensions, Point, Size};
+use embedded_graphics::pixelcolor::raw::RawU32;
+use embedded_graphics::prelude::{PixelColor, Primitive};
+use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
+use embedded_graphics::{Drawable, Pixel};
 use rand::{Rng, RngCore};
-use std::cmp::{Ordering, max, min};
+use std::cmp::Ordering;
+
 mod transmute;
 enum Move {
     /// Move the source element to the empty target location
@@ -80,18 +87,48 @@ impl GameWorld {
         self.board.len()
     }
 }
+impl PixelColor for Element {
+    type Raw = RawU32;
+}
+impl Dimensions for GameWorld {
+    fn bounding_box(&self) -> Rectangle {
+        Rectangle::new(
+            Point::new(0, 0),
+            Size::new(self.board_width() as u32, self.board_height() as u32),
+        )
+    }
+}
+impl DrawTarget for GameWorld {
+    type Color = Element;
+    type Error = String;
+
+    fn draw_iter<I>(&mut self, pixels: I) -> Result<(), Self::Error>
+    where
+        I: IntoIterator<Item = Pixel<Self::Color>>,
+    {
+        for pixel in pixels {
+            if pixel.0.x >= 0
+                && pixel.0.y >= 0
+                && pixel.0.x < self.board_width() as i32
+                && pixel.0.y < self.board_height() as i32
+            {
+                self.board[pixel.0.x as usize][pixel.0.y as usize] = pixel.1;
+            }
+        }
+        Ok(())
+    }
+}
 
 impl GameWorld {
     pub fn insert_element_at(&mut self, ui: &Ui, window_x: i32, window_y: i32, element: Element) {
         if let Some((x, y)) = ui.window_to_board_coordinate(window_x, window_y) {
-            for drw_y in max(0, y - ui.cursor_size() + 1)
-                ..=min(self.board[0].len() as i32 - 1, y + ui.cursor_size() - 1)
-            {
-                for drw_x in max(0, x - ui.cursor_size() + 1)
-                    ..=min(self.board.len() as i32 - 1, x + ui.cursor_size() - 1)
-                {
-                    self.board[drw_x as usize][drw_y as usize] = element;
-                }
+            match ui.cursor() {
+                CursorKind::Square { size } => {
+                    Rectangle::with_center(Point::new(x, y), Size::new(*size, *size))
+                        .into_styled(PrimitiveStyle::with_fill(element))
+                        .draw(self)
+                        .unwrap();
+                },
             }
         }
     }

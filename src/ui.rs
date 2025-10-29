@@ -14,14 +14,22 @@
 //   You should have received a copy of the GNU General Public License
 //   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::canvas_display::CanvasDisplay;
 use crate::colors::BOARD_BORDER_COLOR;
 use crate::world::GameWorld;
+use embedded_graphics::Drawable;
+use embedded_graphics::geometry::Size;
+use embedded_graphics::prelude::Primitive;
+use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
-use sdl2::render::{BlendMode, Canvas, RenderTarget, Texture, WindowCanvas};
-use std::cmp::{max, min};
+use sdl2::render::{Canvas, RenderTarget, Texture, WindowCanvas};
 
 pub const CURSOR_PREVIEW_COLOR: Color = Color::RGBA(0xff, 0xff, 0xff, 0x30);
+#[derive(Eq, PartialEq, Copy, Clone, Debug)]
+pub enum CursorKind {
+    Square { size: u32 },
+}
 pub struct Ui {
     pub win_width: usize,
     pub win_height: usize,
@@ -29,7 +37,7 @@ pub struct Ui {
     pub board_width: usize,
     /// Board height in pixels
     pub board_height: usize,
-    cursor_size: i32,
+    cursor: CursorKind,
     pub(crate) scaling_factor: usize,
 }
 
@@ -48,37 +56,46 @@ impl Ui {
         canvas: &mut Canvas<T>,
         x: i32,
         y: i32,
-        world: &GameWorld,
     ) -> Result<(), String> {
         if let Some((x, y)) = self.window_to_board_coordinate(x, y) {
-            let xmin = max(0, x - self.cursor_size() + 1);
-            let xmax = min(world.board_width() as i32 - 1, x + self.cursor_size() - 1);
-            let ymin = max(0, y - self.cursor_size() + 1);
-            let ymax = min(world.board_height() as i32 - 1, y + self.cursor_size() - 1);
-            // canvas.with_texture_canvas(texture,|canvas| {
-            canvas.set_draw_color(CURSOR_PREVIEW_COLOR);
-            canvas.set_blend_mode(BlendMode::Blend);
-            canvas.fill_rect(Rect::new(
-                xmin * self.scaling_factor as i32 + self.left_padding(),
-                ymin * self.scaling_factor as i32 + self.top_padding(),
-                (xmax - xmin + 1) as u32 * self.scaling_factor as u32,
-                (ymax - ymin + 1) as u32 * self.scaling_factor as u32,
-            ))?;
-            // }).unwrap();
+            match self.cursor {
+                CursorKind::Square { size } => {
+                    Rectangle::with_center(
+                        embedded_graphics::prelude::Point::new(
+                            x * self.scaling_factor as i32 + self.left_padding() + 1,
+                            y * self.scaling_factor as i32 + self.top_padding() + 1,
+                        ),
+                        Size::new(
+                            size * self.scaling_factor as u32,
+                            size * self.scaling_factor as u32,
+                        ),
+                    )
+                    .into_styled(PrimitiveStyle::with_fill(CURSOR_PREVIEW_COLOR.into()))
+                    .draw(&mut CanvasDisplay {
+                        canvas,
+                        width: self.win_width,
+                        height: self.win_height,
+                        left_padding: self.left_padding(),
+                        right_padding: self.win_width as i32 - self.right_padding(),
+                        top_padding: self.top_padding(),
+                        bottom_padding: self.win_height as i32 - self.bottom_padding(),
+                    })?;
+                },
+            }
         }
         Ok(())
     }
 }
 
 impl Ui {
-    pub(crate) fn set_cursor_size(&mut self, new_size: i32) {
-        self.cursor_size = new_size
+    pub(crate) fn set_cursor(&mut self, cursor: CursorKind) {
+        self.cursor = cursor
     }
 }
 
 impl Ui {
-    pub fn cursor_size(&self) -> i32 {
-        self.cursor_size
+    pub fn cursor(&self) -> &CursorKind {
+        &self.cursor
     }
     pub(crate) fn window_to_board_coordinate(
         &self,
@@ -122,7 +139,7 @@ impl Ui {
             win_height: height,
             board_width: width - 240,
             board_height: height - 80,
-            cursor_size: 3,
+            cursor: CursorKind::Square { size: 3 },
             scaling_factor,
         }
     }
@@ -192,5 +209,41 @@ impl Ui {
         )?;
 
         Ok(())
+    }
+}
+
+impl CursorKind {
+    pub const fn ui_cursors() -> &'static [Self] {
+        &[
+            CursorKind::Square { size: 1 },
+            CursorKind::Square { size: 2 },
+            CursorKind::Square { size: 3 },
+            CursorKind::Square { size: 5 },
+            CursorKind::Square { size: 10 },
+            CursorKind::Square { size: 15 },
+            CursorKind::Square { size: 25 },
+            CursorKind::Square { size: 50 },
+        ]
+    }
+    /// The text to show on UI buttons for this cursor
+    pub fn button_text(&self) -> String {
+        match self {
+            CursorKind::Square { size } => size.to_string(),
+        }
+    }
+    /// The text to show on UI tooltips for this cursor
+    pub fn tooltip_text(&self) -> String {
+        match self {
+            CursorKind::Square { size } => match size {
+                1 => "A single pixel".to_string(),
+                x => format!("A {}x{} square", x, x),
+            },
+        }
+    }
+    /// The category text to show in the UI for this cursor
+    pub const fn category_text(&self) -> &'static str {
+        match self {
+            CursorKind::Square { .. } => "Square",
+        }
     }
 }
