@@ -144,7 +144,10 @@ impl GameWorld {
                         .unwrap();
                 },
                 CursorKind::Pen { size } => {
-                    if let Some((px, py)) = ui.window_to_board_coordinate(prev_x, prev_y) {
+                    if let Some((px, py)) = ui.window_to_board_coordinate(prev_x, prev_y)
+                        && px != x
+                        && py != y
+                    {
                         Line::new(Point::new(x, y), Point::new(px, py))
                             .into_styled(PrimitiveStyle::with_stroke(element, *size))
                             .draw(self)
