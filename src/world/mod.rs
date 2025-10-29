@@ -356,17 +356,22 @@ impl GameWorld {
         let prob_quot = 0.75;
         if y < (self.board[0].len() - 1) {
             let my_density = self.board[x][y].density();
-            let mut density_down_left = if x == 0 || !self.board[x - 1][y + 1].is_liquid_or_gas() {
+            let mut density_down_left = if x == 0
+                || !self.board[x - 1][y + 1].is_liquid_or_gas()
+                || (self.board[x - 1][y] != Element::None && self.board[x][y + 1] != Element::None)
+            {
                 None
             } else {
                 self.board[x - 1][y + 1].density()
             };
-            let mut density_down_right =
-                if x == (self.board.len() - 1) || !self.board[x + 1][y + 1].is_liquid_or_gas() {
-                    None
-                } else {
-                    self.board[x + 1][y + 1].density()
-                };
+            let mut density_down_right = if x == (self.board.len() - 1)
+                || !self.board[x + 1][y + 1].is_liquid_or_gas()
+                || (self.board[x + 1][y] != Element::None && self.board[x][y + 1] != Element::None)
+            {
+                None
+            } else {
+                self.board[x + 1][y + 1].density()
+            };
             if let Some(a) = my_density {
                 if let Some(b) = density_down_right
                     && b >= a

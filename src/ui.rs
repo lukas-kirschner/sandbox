@@ -71,16 +71,17 @@ impl Ui {
             };
             // TODO Rewrite Canvas Display to use scaling factor to show pixel-perfect previews
             // The X coord of the preview tile center
-            let draw_x = x * self.scaling_factor as i32 + self.left_padding() +(self.scaling_factor / 2) as i32;
+            let draw_x = x * self.scaling_factor as i32
+                + self.left_padding()
+                + (self.scaling_factor / 2) as i32;
             // The X coord of the preview tile center
-            let draw_y = y * self.scaling_factor as i32 + self.top_padding() +(self.scaling_factor / 2) as i32;
+            let draw_y = y * self.scaling_factor as i32
+                + self.top_padding()
+                + (self.scaling_factor / 2) as i32;
             match self.cursor {
                 CursorKind::Square { size } => {
                     Rectangle::with_center(
-                        embedded_graphics::prelude::Point::new(
-                            draw_x,
-                            draw_y,
-                        ),
+                        embedded_graphics::prelude::Point::new(draw_x, draw_y),
                         Size::new(
                             size * self.scaling_factor as u32,
                             size * self.scaling_factor as u32,
@@ -91,10 +92,7 @@ impl Ui {
                 },
                 CursorKind::Pen { size, .. } => {
                     Rectangle::with_center(
-                        embedded_graphics::prelude::Point::new(
-                            draw_x,
-                            draw_y,
-                        ),
+                        embedded_graphics::prelude::Point::new(draw_x, draw_y),
                         Size::new(
                             size * self.scaling_factor as u32,
                             size * self.scaling_factor as u32,
@@ -105,10 +103,7 @@ impl Ui {
                 },
                 CursorKind::Circle { size } => {
                     Circle::with_center(
-                        embedded_graphics::prelude::Point::new(
-                            draw_x,
-                            draw_y,
-                        ),
+                        embedded_graphics::prelude::Point::new(draw_x, draw_y),
                         size * self.scaling_factor as u32,
                     )
                     .into_styled(PrimitiveStyle::with_fill(CURSOR_PREVIEW_COLOR.into()))
