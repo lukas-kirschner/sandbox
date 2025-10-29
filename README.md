@@ -1,5 +1,7 @@
 # Sandbox
 
+![Banner Image](img/banner.png)
+
 ## A simple 2D falling sand physics game
 
 # Build the project
