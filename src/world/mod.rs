@@ -20,7 +20,7 @@ use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::geometry::{Dimensions, Point, Size};
 use embedded_graphics::pixelcolor::raw::RawU32;
 use embedded_graphics::prelude::{PixelColor, Primitive};
-use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
+use embedded_graphics::primitives::{Circle, PrimitiveStyle, Rectangle};
 use embedded_graphics::{Drawable, Pixel};
 use rand::{Rng, RngCore};
 use std::cmp::Ordering;
@@ -125,6 +125,12 @@ impl GameWorld {
             match ui.cursor() {
                 CursorKind::Square { size } => {
                     Rectangle::with_center(Point::new(x, y), Size::new(*size, *size))
+                        .into_styled(PrimitiveStyle::with_fill(element))
+                        .draw(self)
+                        .unwrap();
+                },
+                CursorKind::Circle { size } => {
+                    Circle::with_center(Point::new(x, y), *size)
                         .into_styled(PrimitiveStyle::with_fill(element))
                         .draw(self)
                         .unwrap();

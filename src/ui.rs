@@ -20,7 +20,7 @@ use crate::world::GameWorld;
 use embedded_graphics::Drawable;
 use embedded_graphics::geometry::Size;
 use embedded_graphics::prelude::Primitive;
-use embedded_graphics::primitives::{PrimitiveStyle, Rectangle};
+use embedded_graphics::primitives::{Circle, PrimitiveStyle, Rectangle};
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::{Canvas, RenderTarget, Texture, WindowCanvas};
@@ -29,6 +29,7 @@ pub const CURSOR_PREVIEW_COLOR: Color = Color::RGBA(0xff, 0xff, 0xff, 0x30);
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
 pub enum CursorKind {
     Square { size: u32 },
+    Circle { size: u32 },
 }
 pub struct Ui {
     pub win_width: usize,
@@ -58,6 +59,15 @@ impl Ui {
         y: i32,
     ) -> Result<(), String> {
         if let Some((x, y)) = self.window_to_board_coordinate(x, y) {
+            let mut canvas_display = CanvasDisplay {
+                canvas,
+                width: self.win_width,
+                height: self.win_height,
+                left_padding: self.left_padding(),
+                right_padding: self.win_width as i32 - self.right_padding(),
+                top_padding: self.top_padding(),
+                bottom_padding: self.win_height as i32 - self.bottom_padding(),
+            };
             match self.cursor {
                 CursorKind::Square { size } => {
                     Rectangle::with_center(
@@ -71,15 +81,18 @@ impl Ui {
                         ),
                     )
                     .into_styled(PrimitiveStyle::with_fill(CURSOR_PREVIEW_COLOR.into()))
-                    .draw(&mut CanvasDisplay {
-                        canvas,
-                        width: self.win_width,
-                        height: self.win_height,
-                        left_padding: self.left_padding(),
-                        right_padding: self.win_width as i32 - self.right_padding(),
-                        top_padding: self.top_padding(),
-                        bottom_padding: self.win_height as i32 - self.bottom_padding(),
-                    })?;
+                    .draw(&mut canvas_display)?;
+                },
+                CursorKind::Circle { size } => {
+                    Circle::with_center(
+                        embedded_graphics::prelude::Point::new(
+                            x * self.scaling_factor as i32 + self.left_padding() + 1,
+                            y * self.scaling_factor as i32 + self.top_padding() + 1,
+                        ),
+                        size * self.scaling_factor as u32,
+                    )
+                    .into_styled(PrimitiveStyle::with_fill(CURSOR_PREVIEW_COLOR.into()))
+                    .draw(&mut canvas_display)?;
                 },
             }
         }
@@ -223,12 +236,18 @@ impl CursorKind {
             CursorKind::Square { size: 15 },
             CursorKind::Square { size: 25 },
             CursorKind::Square { size: 50 },
+            CursorKind::Circle { size: 5 },
+            CursorKind::Circle { size: 10 },
+            CursorKind::Circle { size: 15 },
+            CursorKind::Circle { size: 25 },
+            CursorKind::Circle { size: 50 },
         ]
     }
     /// The text to show on UI buttons for this cursor
     pub fn button_text(&self) -> String {
         match self {
             CursorKind::Square { size } => size.to_string(),
+            CursorKind::Circle { size } => size.to_string(),
         }
     }
     /// The text to show on UI tooltips for this cursor
@@ -238,12 +257,14 @@ impl CursorKind {
                 1 => "A single pixel".to_string(),
                 x => format!("A {}x{} square", x, x),
             },
+            CursorKind::Circle { size } => format!("A circle with diameter {}", size),
         }
     }
     /// The category text to show in the UI for this cursor
     pub const fn category_text(&self) -> &'static str {
         match self {
             CursorKind::Square { .. } => "Square",
+            CursorKind::Circle { .. } => "Circle",
         }
     }
 }
