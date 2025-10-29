@@ -250,9 +250,14 @@ impl GameWorld {
             Some(density) => {
                 if density > AIR_DENSITY {
                     if y < (self.board[0].len() - 1) {
-                        let mut down_left = x > 0 && self.board[x - 1][y + 1] == Element::None;
-                        let mut down_right =
-                            x < (self.board.len() - 1) && self.board[x + 1][y + 1] == Element::None;
+                        let mut down_left = x > 0
+                            && self.board[x - 1][y + 1] == Element::None
+                            && (self.board[x - 1][y] == Element::None
+                                || self.board[x][y + 1] == Element::None);
+                        let mut down_right = x < (self.board.len() - 1)
+                            && self.board[x + 1][y + 1] == Element::None
+                            && (self.board[x + 1][y] == Element::None
+                                || self.board[x][y + 1] == Element::None);
                         if down_left && down_right {
                             down_left = rng.random_bool(0.5);
                             down_right = !down_left;
@@ -293,9 +298,14 @@ impl GameWorld {
                     }
                 } else if density < AIR_DENSITY {
                     if y > 0 {
-                        let mut up_left = x > 0 && self.board[x - 1][y - 1] == Element::None;
-                        let mut up_right =
-                            x < (self.board.len() - 1) && self.board[x + 1][y - 1] == Element::None;
+                        let mut up_left = x > 0
+                            && self.board[x - 1][y - 1] == Element::None
+                            && (self.board[x - 1][y] == Element::None
+                                || self.board[x][y - 1] == Element::None);
+                        let mut up_right = x < (self.board.len() - 1)
+                            && self.board[x + 1][y - 1] == Element::None
+                            && (self.board[x + 1][y] == Element::None
+                                || self.board[x][y - 1] == Element::None);
                         if up_left && up_right {
                             up_left = rng.random_bool(0.5);
                             up_right = !up_left;
