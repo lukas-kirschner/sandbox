@@ -43,6 +43,7 @@ impl Element {
             Element::FireSource => Color::RGB(0xd6, 0x9f, 0x7e),
             Element::Gasoline => Color::RGB(0x92, 0x19, 0x09),
             Element::GasolineSource => Color::RGB(0x82, 0x15, 0x06),
+            Element::Sink => Color::RGB(0x3, 0x0, 0x15),
         }
     }
 }

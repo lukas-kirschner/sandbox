@@ -259,6 +259,18 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
             },
             _ => Transmutation::None,
         },
+        Element::Sink => {
+            // Sink destroys everything except solids
+            match b.kind() {
+                ElementKind::None => Transmutation::None,
+                ElementKind::Solid => Transmutation::None,
+                _ => Transmutation::WithProbability {
+                    probability: 0.3,
+                    outcome_a: Some(Element::Sink),
+                    outcome_b: None,
+                },
+            }
+        },
     }
 }
 

@@ -49,6 +49,7 @@ pub enum Element {
         flame_spawn_prob: f64,
         spawns_ash: bool,
     },
+    Sink,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug, Default, EnumIter)]
@@ -178,6 +179,7 @@ impl Element {
             Element::MethaneBurner => ElementKind::Solid,
             Element::Wood => ElementKind::Solid,
             Element::Ash => ElementKind::Powder { density: 1.5 },
+            Element::Sink => ElementKind::Solid,
         }
     }
     /// The flammability properties of flammable elements
@@ -224,6 +226,7 @@ impl Element {
                 flame_spawn_prob: 0.05,
             },
             Element::Ash => Flammability::NotFlammable,
+            Element::Sink => Flammability::NotFlammable,
         }
     }
     pub const fn density(&self) -> Option<f32> {
@@ -282,6 +285,7 @@ impl Element {
             Element::MethaneBurner => "A source of methane.",
             Element::Flame => "Fire.",
             Element::BurningParticle { .. } => "A burning particle.",
+            Element::Sink => "A sink that destroys all adjacent elements.",
         }
     }
 }
@@ -313,6 +317,7 @@ impl Display for Element {
                 Element::MethaneBurner => "Methane Burner",
                 Element::Wood => "Wood",
                 Element::Ash => "Ash",
+                Element::Sink => "Sink",
             }
         )
     }
