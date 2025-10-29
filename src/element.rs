@@ -29,8 +29,10 @@ pub enum Element {
     Salt,
     Dust,
     Ash,
+    ColdLava,
     WetDust,
     Water,
+    Lava,
     SaltWater,
     Gasoline,
     WaterSource,
@@ -141,6 +143,8 @@ impl Element {
     pub const fn show_in_ui(&self) -> bool {
         match self {
             Element::None => false,
+            Element::ColdLava => false,
+            Element::Ash => false,
             Element::BurningParticle { .. } => false,
             _ => true,
         }
@@ -160,6 +164,7 @@ impl Element {
             Element::BrickWall => ElementKind::Solid,
             Element::Water => ElementKind::Liquid { density: 997.0 },
             Element::SaltWater => ElementKind::Liquid { density: 1027.0 },
+            Element::Lava => ElementKind::Liquid { density: 3100.0 },
             Element::Salt => ElementKind::Powder { density: 2170.0 },
             Element::WaterSource => ElementKind::Solid,
             Element::GasolineSource => ElementKind::Solid,
@@ -179,6 +184,7 @@ impl Element {
             Element::MethaneBurner => ElementKind::Solid,
             Element::Wood => ElementKind::Solid,
             Element::Ash => ElementKind::Powder { density: 1.5 },
+            Element::ColdLava => ElementKind::Powder { density: 3050.0 },
             Element::Sink => ElementKind::Solid,
         }
     }
@@ -227,6 +233,8 @@ impl Element {
             },
             Element::Ash => Flammability::NotFlammable,
             Element::Sink => Flammability::NotFlammable,
+            Element::ColdLava => Flammability::NotFlammable,
+            Element::Lava => Flammability::NotFlammable,
         }
     }
     pub const fn density(&self) -> Option<f32> {
@@ -286,6 +294,8 @@ impl Element {
             Element::Flame => "Fire.",
             Element::BurningParticle { .. } => "A burning particle.",
             Element::Sink => "A sink that destroys all adjacent elements.",
+            Element::ColdLava => "A very heavy mixture of stone and minerals.",
+            Element::Lava => "Molten stone and volcanic minerals.",
         }
     }
 }
@@ -318,6 +328,8 @@ impl Display for Element {
                 Element::Wood => "Wood",
                 Element::Ash => "Ash",
                 Element::Sink => "Sink",
+                Element::ColdLava => "Cold Lava",
+                Element::Lava => "Lava",
             }
         )
     }

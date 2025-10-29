@@ -271,6 +271,50 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
                 },
             }
         },
+        Element::ColdLava => Transmutation::None,
+        Element::Lava => match b {
+            // Lava evaporates water and has a high chance of turning into cold lava
+            Element::Water => Transmutation::WithProbabilityOfMultipleA {
+                probability: 0.5,
+                outcome_a: vec![Element::Lava, Element::ColdLava, Element::ColdLava],
+                outcome_b: Some(Element::Steam),
+            },
+            // Lava evaporates Salt Water and might turn into salt in the process
+            Element::SaltWater => Transmutation::WithProbabilityOfMultipleA {
+                probability: 0.5,
+                outcome_a: vec![
+                    Element::Lava,
+                    Element::ColdLava,
+                    Element::ColdLava,
+                    Element::Salt,
+                ],
+                outcome_b: Some(Element::Steam),
+            },
+            // Lava has a very small chance of emitting flames
+            Element::None => Transmutation::WithProbability {
+                probability: 0.0005,
+                outcome_a: Some(*a),
+                outcome_b: Some(Element::Flame),
+            },
+            // Lava has a (small) chance of lighting flammable elements on fire
+            e => match e.flammability() {
+                Flammability::NotFlammable => Transmutation::None,
+                Flammability::Flammable {
+                    prob,
+                    decay_prob,
+                    flame_spawn_prob,
+                } => Transmutation::WithProbability {
+                    probability: prob * 0.1,
+                    outcome_a: Some(*a),
+                    outcome_b: Some(Element::BurningParticle {
+                        burned_element_kind: b.kind(),
+                        decay_prob,
+                        flame_spawn_prob,
+                        spawns_ash: matches!(e, Element::Wood),
+                    }),
+                },
+            },
+        },
     }
 }
 

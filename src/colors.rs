@@ -44,6 +44,8 @@ impl Element {
             Element::Gasoline => Color::RGB(0x92, 0x19, 0x09),
             Element::GasolineSource => Color::RGB(0x82, 0x15, 0x06),
             Element::Sink => Color::RGB(0x3, 0x0, 0x15),
+            Element::Lava => Color::RGB(0xd2, 0x51, 0x16),
+            Element::ColdLava => Color::RGB(0x8b, 0x8b, 0x8c),
         }
     }
 }
