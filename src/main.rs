@@ -106,6 +106,9 @@ fn main() -> Result<(), String> {
     let mut current_elem = Element::Sand;
     let mut event_pump = sdl_context.event_pump()?;
 
+    let mut prev_x = -1;
+    let mut prev_y = -1;
+
     let start_time = Instant::now();
     'running: loop {
         platform.update_time(start_time.elapsed().as_secs_f64());
@@ -124,9 +127,30 @@ fn main() -> Result<(), String> {
         // Always handle mouse events, no matter if the mouse is moved
         let state = MouseState::new(&event_pump);
         if state.is_mouse_button_pressed(MouseButton::Left) {
-            world.insert_element_at(&game_world, state.x(), state.y(), current_elem);
+            world.insert_element_at(
+                &game_world,
+                state.x(),
+                state.y(),
+                current_elem,
+                prev_x,
+                prev_y,
+            );
+            prev_x = state.x();
+            prev_y = state.y();
         } else if state.is_mouse_button_pressed(MouseButton::Right) {
-            world.insert_element_at(&game_world, state.x(), state.y(), Element::None);
+            world.insert_element_at(
+                &game_world,
+                state.x(),
+                state.y(),
+                Element::None,
+                prev_x,
+                prev_y,
+            );
+            prev_x = state.x();
+            prev_y = state.y();
+        } else {
+            prev_x = -1;
+            prev_y = -1;
         }
 
         // let no_ticks = TICKS_PER_SECOND as f32 * delta_s;

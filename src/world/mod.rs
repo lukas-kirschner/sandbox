@@ -20,7 +20,7 @@ use embedded_graphics::draw_target::DrawTarget;
 use embedded_graphics::geometry::{Dimensions, Point, Size};
 use embedded_graphics::pixelcolor::raw::RawU32;
 use embedded_graphics::prelude::{PixelColor, Primitive};
-use embedded_graphics::primitives::{Circle, PrimitiveStyle, Rectangle};
+use embedded_graphics::primitives::{Circle, Line, PrimitiveStyle, Rectangle};
 use embedded_graphics::{Drawable, Pixel};
 use rand::{Rng, RngCore};
 use std::cmp::Ordering;
@@ -120,7 +120,15 @@ impl DrawTarget for GameWorld {
 }
 
 impl GameWorld {
-    pub fn insert_element_at(&mut self, ui: &Ui, window_x: i32, window_y: i32, element: Element) {
+    pub fn insert_element_at(
+        &mut self,
+        ui: &Ui,
+        window_x: i32,
+        window_y: i32,
+        element: Element,
+        prev_x: i32,
+        prev_y: i32,
+    ) {
         if let Some((x, y)) = ui.window_to_board_coordinate(window_x, window_y) {
             match ui.cursor() {
                 CursorKind::Square { size } => {
@@ -134,6 +142,19 @@ impl GameWorld {
                         .into_styled(PrimitiveStyle::with_fill(element))
                         .draw(self)
                         .unwrap();
+                },
+                CursorKind::Pen { size } => {
+                    if let Some((px, py)) = ui.window_to_board_coordinate(prev_x, prev_y) {
+                        Line::new(Point::new(x, y), Point::new(px, py))
+                            .into_styled(PrimitiveStyle::with_stroke(element, *size))
+                            .draw(self)
+                            .unwrap();
+                    } else {
+                        Rectangle::with_center(Point::new(x, y), Size::new(*size, *size))
+                            .into_styled(PrimitiveStyle::with_fill(element))
+                            .draw(self)
+                            .unwrap();
+                    }
                 },
             }
         }

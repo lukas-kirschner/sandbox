@@ -30,6 +30,7 @@ pub const CURSOR_PREVIEW_COLOR: Color = Color::RGBA(0xff, 0xff, 0xff, 0x30);
 pub enum CursorKind {
     Square { size: u32 },
     Circle { size: u32 },
+    Pen { size: u32 },
 }
 pub struct Ui {
     pub win_width: usize,
@@ -70,6 +71,20 @@ impl Ui {
             };
             match self.cursor {
                 CursorKind::Square { size } => {
+                    Rectangle::with_center(
+                        embedded_graphics::prelude::Point::new(
+                            x * self.scaling_factor as i32 + self.left_padding() + 1,
+                            y * self.scaling_factor as i32 + self.top_padding() + 1,
+                        ),
+                        Size::new(
+                            size * self.scaling_factor as u32,
+                            size * self.scaling_factor as u32,
+                        ),
+                    )
+                    .into_styled(PrimitiveStyle::with_fill(CURSOR_PREVIEW_COLOR.into()))
+                    .draw(&mut canvas_display)?;
+                },
+                CursorKind::Pen { size, .. } => {
                     Rectangle::with_center(
                         embedded_graphics::prelude::Point::new(
                             x * self.scaling_factor as i32 + self.left_padding() + 1,
@@ -241,6 +256,11 @@ impl CursorKind {
             CursorKind::Circle { size: 15 },
             CursorKind::Circle { size: 25 },
             CursorKind::Circle { size: 50 },
+            CursorKind::Pen { size: 1 },
+            CursorKind::Pen { size: 2 },
+            CursorKind::Pen { size: 3 },
+            CursorKind::Pen { size: 5 },
+            CursorKind::Pen { size: 10 },
         ]
     }
     /// The text to show on UI buttons for this cursor
@@ -248,6 +268,7 @@ impl CursorKind {
         match self {
             CursorKind::Square { size } => size.to_string(),
             CursorKind::Circle { size } => size.to_string(),
+            CursorKind::Pen { size, .. } => size.to_string(),
         }
     }
     /// The text to show on UI tooltips for this cursor
@@ -258,6 +279,9 @@ impl CursorKind {
                 x => format!("A {}x{} square", x, x),
             },
             CursorKind::Circle { size } => format!("A circle with diameter {}", size),
+            CursorKind::Pen { size, .. } => {
+                format!("Continuous pen with a stroke of {} pixels", size)
+            },
         }
     }
     /// The category text to show in the UI for this cursor
@@ -265,6 +289,7 @@ impl CursorKind {
         match self {
             CursorKind::Square { .. } => "Square",
             CursorKind::Circle { .. } => "Circle",
+            CursorKind::Pen { .. } => "Pen",
         }
     }
 }
