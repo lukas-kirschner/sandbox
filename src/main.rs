@@ -90,10 +90,19 @@ fn main() -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     let creator = canvas.texture_creator();
     let mut painter = Painter::new();
+    assert_eq!(
+        game_world.board_width % game_world.scaling_factor,
+        0,
+        "Expected the width to be divisible by the scaling factor!"
+    );
+    assert_eq!(
+        game_world.board_height % game_world.scaling_factor,
+        0,
+        "Expected the height to be divisible by the scaling factor!"
+    );
     let mut world: GameWorld = GameWorld::new(
-        game_world.board_width,
-        game_world.board_height,
-        game_world.scaling_factor,
+        game_world.board_width / game_world.scaling_factor,
+        game_world.board_height / game_world.scaling_factor,
     );
     let mut texture = creator
         .create_texture_streaming(

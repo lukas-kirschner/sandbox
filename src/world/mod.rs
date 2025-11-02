@@ -23,7 +23,7 @@ use embedded_graphics::prelude::{PixelColor, Primitive};
 use embedded_graphics::primitives::{Circle, Line, PrimitiveStyle, Rectangle};
 use embedded_graphics::{Drawable, Pixel};
 use rand::{Rng, RngCore};
-use std::cmp::Ordering;
+use std::cmp::{Ordering, max};
 
 mod transmute;
 enum Move {
@@ -75,16 +75,62 @@ impl Move {
     }
 }
 pub struct GameWorld {
+    /// The content of the game board.
+    /// Must be at least as large as the viewport size, but may be larger.
     board: Vec<Vec<Element>>,
+    /// The viewport width of the game board.
+    /// All parts of the board outside the visible area (if e.g., a window is resized to a smaller size)
+    /// are being paused until the window is resized again.
+    width: usize,
+    /// The viewport height of the game board
+    /// All parts of the board outside the visible area (if e.g., a window is resized to a smaller size)
+    ///  are being paused until the window is resized again.
+    height: usize,
+    /// All simulated element moves in one tick
     moves: Vec<Move>,
 }
 
 impl GameWorld {
-    pub(crate) fn board_height(&self) -> usize {
+    /// The width of the internal board data
+    #[allow(dead_code)]
+    pub fn board_width(&self) -> usize {
+        self.board.len()
+    }
+    /// The height of the internal board data
+    #[allow(dead_code)]
+    pub fn board_height(&self) -> usize {
         self.board[0].len()
     }
-    pub(crate) fn board_width(&self) -> usize {
-        self.board.len()
+    pub const fn viewport_height(&self) -> usize {
+        self.height
+    }
+    pub const fn viewport_width(&self) -> usize {
+        self.width
+    }
+    /// Destroy this board and return a resized copy.
+    /// Resizes the viewport to the given size.
+    /// If the new size is less than the old size, the pruned data will continue to exist,
+    /// but not be simulated until the board is resized again.
+    #[allow(dead_code)]
+    pub fn resize(mut self, new_width: usize, new_height: usize) -> Self {
+        let new_board_width = max(4, new_width);
+        let new_board_height = max(4, new_height);
+        let oldlen = self.board.len();
+        for x in 0..new_board_width {
+            if x >= oldlen {
+                self.board.push(vec![Element::None; new_board_height]);
+            }
+            if (new_board_height - 1) >= self.board[x].len() {
+                let oldln = new_board_height - self.board[x].len();
+                self.board[x].append(&mut vec![Element::None; oldln])
+            }
+        }
+        Self {
+            board: self.board,
+            width: new_width,
+            height: new_height,
+            moves: self.moves,
+        }
     }
 }
 impl PixelColor for Element {
@@ -94,7 +140,7 @@ impl Dimensions for GameWorld {
     fn bounding_box(&self) -> Rectangle {
         Rectangle::new(
             Point::new(0, 0),
-            Size::new(self.board_width() as u32, self.board_height() as u32),
+            Size::new(self.viewport_width() as u32, self.viewport_height() as u32),
         )
     }
 }
@@ -109,8 +155,8 @@ impl DrawTarget for GameWorld {
         for pixel in pixels {
             if pixel.0.x >= 0
                 && pixel.0.y >= 0
-                && pixel.0.x < self.board_width() as i32
-                && pixel.0.y < self.board_height() as i32
+                && pixel.0.x < self.viewport_width() as i32
+                && pixel.0.y < self.viewport_height() as i32
             {
                 self.board[pixel.0.x as usize][pixel.0.y as usize] = pixel.1;
             }
@@ -168,7 +214,7 @@ impl GameWorld {
             None => false,
             Some(density) => {
                 if density > AIR_DENSITY {
-                    if y < (self.board[0].len() - 1) {
+                    if y < (self.viewport_height() - 1) {
                         // Skip move with side spread probability
                         if rng.random_bool(self.board[x][y].spread_prob(&self.board[x][y + 1])) {
                             return false;
@@ -216,7 +262,7 @@ impl GameWorld {
     }
     /// Try to push a 'swap down' to the moves vector and return true if that succeeded.
     fn swap_down(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
-        if y < (self.board[0].len() - 1) {
+        if y < (self.viewport_height() - 1) {
             // Only enable swaps if the bottom element is a liquid or gas!
             if !self.board[x][y + 1].is_liquid_or_gas() {
                 return false;
@@ -252,12 +298,12 @@ impl GameWorld {
             None => false,
             Some(density) => {
                 if density > AIR_DENSITY {
-                    if y < (self.board[0].len() - 1) {
+                    if y < (self.viewport_height() - 1) {
                         let mut down_left = x > 0
                             && self.board[x - 1][y + 1] == Element::None
                             && (self.board[x - 1][y] == Element::None
                                 || self.board[x][y + 1] == Element::None);
-                        let mut down_right = x < (self.board.len() - 1)
+                        let mut down_right = x < (self.viewport_width() - 1)
                             && self.board[x + 1][y + 1] == Element::None
                             && (self.board[x + 1][y] == Element::None
                                 || self.board[x][y + 1] == Element::None);
@@ -305,7 +351,7 @@ impl GameWorld {
                             && self.board[x - 1][y - 1] == Element::None
                             && (self.board[x - 1][y] == Element::None
                                 || self.board[x][y - 1] == Element::None);
-                        let mut up_right = x < (self.board.len() - 1)
+                        let mut up_right = x < (self.viewport_width() - 1)
                             && self.board[x + 1][y - 1] == Element::None
                             && (self.board[x + 1][y] == Element::None
                                 || self.board[x][y - 1] == Element::None);
@@ -357,7 +403,7 @@ impl GameWorld {
     fn swap_down_side(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
         // Make down-side swaps a little less probable:
         let prob_quot = 0.75;
-        if y < (self.board[0].len() - 1) {
+        if y < (self.viewport_height() - 1) {
             let my_density = self.board[x][y].density();
             let mut density_down_left = if x == 0
                 || !self.board[x - 1][y + 1].is_liquid_or_gas()
@@ -367,7 +413,7 @@ impl GameWorld {
             } else {
                 self.board[x - 1][y + 1].density()
             };
-            let mut density_down_right = if x == (self.board.len() - 1)
+            let mut density_down_right = if x == (self.viewport_width() - 1)
                 || !self.board[x + 1][y + 1].is_liquid_or_gas()
                 || (self.board[x + 1][y] != Element::None && self.board[x][y + 1] != Element::None)
             {
@@ -439,7 +485,7 @@ impl GameWorld {
     /// Try to push a 'move side' to the moves vector and return true if that succeeded.
     fn move_side(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) -> bool {
         let mut left = x > 0 && self.board[x - 1][y] == Element::None;
-        let mut right = x < (self.board.len() - 1) && self.board[x + 1][y] == Element::None;
+        let mut right = x < (self.viewport_width() - 1) && self.board[x + 1][y] == Element::None;
         if left && right {
             left = rng.random_bool(0.5);
             right = !left;
@@ -467,8 +513,8 @@ impl GameWorld {
     /// Tick (Calculate the next iteration of this board in-place)
     pub fn tick(&mut self, rng: &mut dyn RngCore) {
         self.moves.clear();
-        let height = self.board[0].len();
-        let width = self.board.len();
+        let height = self.viewport_height();
+        let width = self.viewport_width();
         // First, perform a 'Decay' pass - This will decay all decaying elements with a certain probability.
         for y in 0..height {
             for x in 0..width {
@@ -585,10 +631,10 @@ impl GameWorld {
 
         // Commit moves. If multiple moves into one single destination are possible, select a random one
         self.moves.push(Move::MoveElement {
-            from_x: self.board.len(),
-            from_y: self.board[0].len(),
-            to_x: self.board.len(),
-            to_y: self.board[0].len(),
+            from_x: self.viewport_width(),
+            from_y: self.viewport_height(),
+            to_x: self.viewport_width(),
+            to_y: self.viewport_height(),
         });
         let mut prev_i = 0usize;
         for i in 0..(self.moves.len() - 1) {
@@ -627,20 +673,12 @@ impl GameWorld {
 }
 
 impl GameWorld {
-    pub fn new(width: usize, height: usize, scaling_factor: usize) -> Self {
-        assert_eq!(
-            width % scaling_factor,
-            0,
-            "Expected the width to be divisible by the scaling factor!"
-        );
-        assert_eq!(
-            height % scaling_factor,
-            0,
-            "Expected the height to be divisible by the scaling factor!"
-        );
+    pub fn new(width: usize, height: usize) -> Self {
         Self {
-            board: vec![vec![Element::None; height / scaling_factor]; width / scaling_factor],
+            board: vec![vec![Element::None; height]; width],
             moves: Vec::new(),
+            width,
+            height,
         }
     }
     pub fn board(&self) -> &Vec<Vec<Element>> {
@@ -657,7 +695,7 @@ mod tests {
 
     #[test]
     fn test_fall_tick_simple() {
-        let mut board = GameWorld::new(3, 3, 1);
+        let mut board = GameWorld::new(3, 3);
         let mut rng = XorShiftRng::seed_from_u64(0);
         board.board[1][1] = Element::Sand;
         board.tick(&mut rng);
@@ -666,7 +704,7 @@ mod tests {
     }
     #[test]
     fn test_fall_tick_stacked() {
-        let mut board = GameWorld::new(3, 3, 1);
+        let mut board = GameWorld::new(3, 3);
         let mut rng = XorShiftRng::seed_from_u64(0);
         board.board[1][0] = Element::Sand;
         board.board[1][1] = Element::Sand;
