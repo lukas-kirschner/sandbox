@@ -166,6 +166,13 @@ impl DrawTarget for GameWorld {
 }
 
 impl GameWorld {
+    pub fn get_element_at(&self, ui: &Ui, window_x: i32, window_y: i32) -> Option<Element> {
+        if let Some((x, y)) = ui.window_to_board_coordinate(window_x, window_y) {
+            Some(self.board[x as usize][y as usize])
+        } else {
+            None
+        }
+    }
     pub fn insert_element_at(
         &mut self,
         ui: &Ui,

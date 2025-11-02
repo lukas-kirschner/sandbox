@@ -48,6 +48,10 @@ impl Ui {
         // Padding includes the 1 pixel-wide border - i.e., subtract 2.
         self.top_padding() as f32 - 2.
     }
+    pub const fn bottom_statusbar_height(&self) -> f32 {
+        // Padding includes the 1 pixel-wide border - i.e., subtract 2.
+        self.bottom_padding() as f32 - 2.
+    }
     pub const fn right_buttonbar_width(&self) -> f32 {
         // Padding includes the 1 pixel-wide border - i.e., subtract 2.
         self.right_padding() as f32 - 2.

@@ -333,8 +333,8 @@ impl GameWorld {
     }
     /// Randomly transmute elements in the world
     pub(in crate::world) fn transmute(&mut self, x: usize, y: usize, rng: &mut dyn RngCore) {
-        let height = self.board[0].len();
-        let width = self.board.len();
+        let height = self.viewport_height();
+        let width = self.viewport_width();
         // Make it most probable to transform the top, then left right, then bottom elements.
         // Important for fire!
         let probes = [(0, -1), (-1, 0), (1, 0), (0, 1)];

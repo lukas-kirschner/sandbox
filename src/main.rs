@@ -119,6 +119,7 @@ fn main() -> Result<(), String> {
 
     let mut prev_x = -1;
     let mut prev_y = -1;
+    let mut over_elem;
 
     let start_time = Instant::now();
     'running: loop {
@@ -181,6 +182,7 @@ fn main() -> Result<(), String> {
             prev_x = -1;
             prev_y = -1;
         }
+        over_elem = world.get_element_at(&game_world, state.x(), state.y());
 
         // let no_ticks = TICKS_PER_SECOND as f32 * delta_s;
         // Tick once for scaling 4, 4x for scaling 1
@@ -192,6 +194,7 @@ fn main() -> Result<(), String> {
         let ctx = platform.context();
         build_element_buttons(&ctx, &game_world, &mut current_elem);
         build_top_settings_pane(&ctx, &mut game_world);
+        build_bottom_status_pane(&ctx, &mut game_world, over_elem);
 
         let output = platform.end_frame(&mut video_subsystem).unwrap();
         let v_primitives = platform.tessellate(&output);
@@ -305,6 +308,32 @@ fn build_top_settings_pane(context: &egui::Context, game_world: &mut Ui) {
                         });
                     });
                 }
+            });
+        });
+}
+fn build_bottom_status_pane(
+    context: &egui::Context,
+    game_world: &mut Ui,
+    over_elem: Option<Element>,
+) {
+    let status_height =
+        game_world.bottom_statusbar_height() - context.style().spacing.window_margin.bottom;
+    egui::TopBottomPanel::bottom("StatusBar")
+        .resizable(false)
+        .exact_height(status_height)
+        .show(context, |ui| {
+            ui.with_layout(Layout::bottom_up(Align::LEFT), |ui| {
+                // Add bottom margin:
+                ui.add_space(ui.spacing().item_spacing.y * 4.);
+                ui.with_layout(Layout::left_to_right(Align::BOTTOM), |ui| {
+                    // Start items at left board edge
+                    ui.add_space(game_world.left_buttonbar_width());
+                    ui.separator();
+                    if let Some(elem) = over_elem {
+                        ui.label(format!("Over {}", elem));
+                    }
+                    ui.separator();
+                });
             });
         });
 }
