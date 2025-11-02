@@ -161,9 +161,7 @@ impl Ui {
     }
     /// The space between right window border and game board, including the border
     const fn right_padding(&self) -> i32 {
-        (self.win_width as i32 - self.left_padding() - self.board_width as i32)
-            + (self.win_width as i32 - self.left_padding() - self.board_width as i32)
-                % self.scaling_factor as i32
+        self.win_width as i32 - self.left_padding() - self.board_width as i32
     }
     /// The space between top window border and top game board, including the border
     const fn top_padding(&self) -> i32 {
@@ -171,19 +169,20 @@ impl Ui {
     }
     /// The space between bottom window border and bottom game board, including the border
     const fn bottom_padding(&self) -> i32 {
-        (self.win_height as i32 - self.top_padding() - self.board_height as i32)
-            + (self.win_height as i32 - self.top_padding() - self.board_height as i32)
-                % self.scaling_factor as i32
+        self.win_height as i32 - self.top_padding() - self.board_height as i32
     }
     pub fn new(width: usize, height: usize, scaling_factor: usize) -> Self {
-        Self {
+        let mut ret = Self {
             win_width: width,
             win_height: height,
             board_width: width - HORIZ_MARGIN,
             board_height: height - VERT_MARGIN,
             cursor: CursorKind::Pen { size: 3 },
             scaling_factor,
-        }
+        };
+        ret.board_width = ret.board_width - (ret.board_width % ret.scaling_factor);
+        ret.board_height = ret.board_height - (ret.board_height % ret.scaling_factor);
+        ret
     }
     pub fn resize(
         self,

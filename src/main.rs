@@ -30,7 +30,7 @@ use crate::element::{Element, ElementKind};
 use crate::ui::{CursorKind, Ui};
 use crate::world::GameWorld;
 use egui::FontFamily::Proportional;
-use egui::{Align, Color32, FontId, Layout, RichText, TextStyle, Vec2};
+use egui::{Align, Color32, FontId, Frame, Layout, Margin, RichText, TextStyle, Vec2, Visuals};
 use egui_sdl2_canvas::Painter;
 use itertools::Itertools;
 use rand::SeedableRng;
@@ -83,6 +83,8 @@ fn main() -> Result<(), String> {
             (TextStyle::Body, FontId::new(14.0, Proportional)),
         ]
         .into();
+        style.spacing.window_margin = Margin::same(0.0);
+        style.visuals = Visuals::dark();
     });
     let mut canvas = window
         .into_canvas()
@@ -92,16 +94,6 @@ fn main() -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     let creator = canvas.texture_creator();
     let mut painter = Painter::new();
-    assert_eq!(
-        game_world.board_width % game_world.scaling_factor,
-        0,
-        "Expected the width to be divisible by the scaling factor!"
-    );
-    assert_eq!(
-        game_world.board_height % game_world.scaling_factor,
-        0,
-        "Expected the height to be divisible by the scaling factor!"
-    );
     let mut world: GameWorld = GameWorld::new(
         game_world.board_width / game_world.scaling_factor,
         game_world.board_height / game_world.scaling_factor,
@@ -227,6 +219,11 @@ fn build_element_buttons(context: &egui::Context, game_world: &Ui, selected: &mu
     egui::SidePanel::right("RightPnl")
         .exact_width(buttonbar_width)
         .resizable(false)
+        .frame(
+            Frame::default()
+                .outer_margin(Margin::same(0.0))
+                .inner_margin(Margin::same(context.style().spacing.item_spacing.x)),
+        )
         .show(context, |ui| {
             // Add space to avoid overlapping Top bar
             ui.add_space(game_world.top_buttonbar_height());
@@ -274,10 +271,14 @@ fn build_element_buttons(context: &egui::Context, game_world: &Ui, selected: &mu
         });
 }
 fn build_top_settings_pane(context: &egui::Context, game_world: &mut Ui) {
-    let buttonbar_height =
-        game_world.top_buttonbar_height() - context.style().spacing.window_margin.top;
+    let buttonbar_height = game_world.top_buttonbar_height();
     egui::TopBottomPanel::top("TopPnl")
         .resizable(false)
+        .frame(
+            Frame::default()
+                .outer_margin(Margin::same(0.0))
+                .inner_margin(Margin::same(context.style().spacing.item_spacing.y)),
+        )
         .exact_height(buttonbar_height)
         .show(context, |ui| {
             // Add top margin
@@ -285,7 +286,6 @@ fn build_top_settings_pane(context: &egui::Context, game_world: &mut Ui) {
                 // Start items at left board edge
                 ui.add_space(game_world.left_buttonbar_width());
                 ui.with_layout(Layout::top_down(Align::LEFT), |ui| {
-                    ui.add_space(ui.spacing().item_spacing.y * 2.);
                     ui.label("Cursor:");
                 });
                 let cursors = CursorKind::ui_cursors()
@@ -316,11 +316,15 @@ fn build_bottom_status_pane(
     game_world: &mut Ui,
     over_elem: Option<Element>,
 ) {
-    let status_height =
-        game_world.bottom_statusbar_height() - context.style().spacing.window_margin.bottom;
+    let status_height = game_world.bottom_statusbar_height();
     egui::TopBottomPanel::bottom("StatusBar")
         .resizable(false)
         .exact_height(status_height)
+        .frame(
+            Frame::default()
+                .outer_margin(Margin::same(0.0))
+                .inner_margin(Margin::same(0.0)),
+        )
         .show(context, |ui| {
             ui.with_layout(Layout::bottom_up(Align::LEFT), |ui| {
                 // Add bottom margin:
