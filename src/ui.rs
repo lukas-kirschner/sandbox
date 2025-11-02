@@ -15,7 +15,7 @@
 //   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::canvas_display::CanvasDisplay;
-use crate::colors::BOARD_BORDER_COLOR;
+use crate::colors::{BOARD_BORDER_COLOR, WINDOW_BACKGROUND_COLOR};
 use crate::world::GameWorld;
 use embedded_graphics::Drawable;
 use embedded_graphics::geometry::Size;
@@ -202,10 +202,10 @@ impl Ui {
             ret.board_width / ret.scaling_factor,
             ret.board_height / ret.scaling_factor,
         );
-        println!(
-            "Resized window: ({}x{}) and board: ({}x{})",
-            ret.win_width, ret.win_height, ret.board_width, ret.board_height
-        );
+        // println!(
+        //     "Resized window: ({}x{}) and board: ({}x{})",
+        //     ret.win_width, ret.win_height, ret.board_width, ret.board_height
+        // );
         (ret, resized_board)
     }
     /// Draw the window content
@@ -215,6 +215,8 @@ impl Ui {
         texture: &mut Texture,
         world: &GameWorld,
     ) -> Result<(), String> {
+        canvas.set_draw_color(WINDOW_BACKGROUND_COLOR);
+        canvas.fill_rect(None)?;
         // Calculate space between window border and game board border
         let left_padding: i32 = self.left_padding() - 1;
         let top_padding: i32 = self.top_padding() - 1;

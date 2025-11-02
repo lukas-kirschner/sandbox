@@ -133,7 +133,8 @@ fn main() -> Result<(), String> {
                     ..
                 } => break 'running,
                 Event::Window {
-                    win_event: WindowEvent::SizeChanged(width, height),
+                    win_event:
+                        WindowEvent::Resized(width, height) | WindowEvent::SizeChanged(width, height),
                     ..
                 } => {
                     (game_world, world) = game_world.resize(

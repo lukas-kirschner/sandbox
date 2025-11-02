@@ -18,6 +18,7 @@ use crate::element::Element;
 use sdl2::pixels::Color;
 
 pub const BOARD_BORDER_COLOR: Color = Color::RGB(255, 255, 255);
+pub const WINDOW_BACKGROUND_COLOR: Color = Color::RGB(0, 0, 0);
 pub const BOARD_BACKGROUND_COLOR: Color = Color::RGB(20, 0, 60);
 impl Element {
     pub const fn color(&self) -> Color {
