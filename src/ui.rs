@@ -124,6 +124,9 @@ impl Ui {
     }
 }
 
+const HORIZ_MARGIN: usize = 240;
+const VERT_MARGIN: usize = 80;
+
 impl Ui {
     pub fn cursor(&self) -> &CursorKind {
         &self.cursor
@@ -172,11 +175,38 @@ impl Ui {
         Self {
             win_width: width,
             win_height: height,
-            board_width: width - 240,
-            board_height: height - 80,
+            board_width: width - HORIZ_MARGIN,
+            board_height: height - VERT_MARGIN,
             cursor: CursorKind::Square { size: 3 },
             scaling_factor,
         }
+    }
+    pub fn resize(
+        self,
+        board: GameWorld,
+        new_width: usize,
+        new_height: usize,
+    ) -> (Self, GameWorld) {
+        let mut ret = Self {
+            win_width: new_width,
+            win_height: new_height,
+            board_width: new_width - HORIZ_MARGIN,
+            board_height: new_height - VERT_MARGIN,
+            cursor: self.cursor,
+            scaling_factor: self.scaling_factor,
+        };
+        ret.board_width = ret.board_width - (ret.board_width % ret.scaling_factor);
+        ret.board_height = ret.board_height - (ret.board_height % ret.scaling_factor);
+
+        let resized_board = board.resize(
+            ret.board_width / ret.scaling_factor,
+            ret.board_height / ret.scaling_factor,
+        );
+        println!(
+            "Resized window: ({}x{}) and board: ({}x{})",
+            ret.win_width, ret.win_height, ret.board_width, ret.board_height
+        );
+        (ret, resized_board)
     }
     /// Draw the window content
     pub fn draw(

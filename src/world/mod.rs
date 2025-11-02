@@ -112,7 +112,7 @@ impl GameWorld {
     /// If the new size is less than the old size, the pruned data will continue to exist,
     /// but not be simulated until the board is resized again.
     #[allow(dead_code)]
-    pub fn resize(mut self, new_width: usize, new_height: usize) -> Self {
+    pub(crate) fn resize(mut self, new_width: usize, new_height: usize) -> Self {
         let new_board_width = max(4, new_width);
         let new_board_height = max(4, new_height);
         let oldlen = self.board.len();

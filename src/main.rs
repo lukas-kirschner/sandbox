@@ -35,10 +35,11 @@ use egui_sdl2_canvas::Painter;
 use itertools::Itertools;
 use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
-use sdl2::event::Event;
+use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::{MouseButton, MouseState};
 use sdl2::pixels::PixelFormatEnum;
+use std::cmp::max;
 use std::time::Instant;
 use strum::IntoEnumIterator;
 
@@ -60,6 +61,7 @@ fn main() -> Result<(), String> {
             game_world.win_height as u32,
         )
         .position_centered()
+        .resizable()
         .opengl()
         .allow_highdpi()
         .build()
@@ -130,6 +132,23 @@ fn main() -> Result<(), String> {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
+                Event::Window {
+                    win_event: WindowEvent::SizeChanged(width, height),
+                    ..
+                } => {
+                    (game_world, world) = game_world.resize(
+                        world,
+                        max(300, width) as usize,
+                        max(200, height) as usize,
+                    );
+                    texture = creator
+                        .create_texture_streaming(
+                            PixelFormatEnum::ARGB8888,
+                            game_world.board_width as u32,
+                            game_world.board_height as u32,
+                        )
+                        .unwrap();
+                },
                 _ => {},
             }
         }
