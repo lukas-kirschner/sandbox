@@ -38,6 +38,7 @@ pub enum Element {
     WaterSource,
     GasolineSource,
     FireSource,
+    Volcano,
     Steam,
     Hydrogen,
     Methane,
@@ -179,6 +180,7 @@ impl Element {
                 ..
             } => *burned_element_kind,
             Element::FireSource => ElementKind::Solid,
+            Element::Volcano => ElementKind::Solid,
             Element::Gasoline => ElementKind::Liquid { density: 737.0 },
             Element::HydrogenBurner => ElementKind::Solid,
             Element::MethaneBurner => ElementKind::Solid,
@@ -206,6 +208,7 @@ impl Element {
             Element::WaterSource => Flammability::NotFlammable,
             Element::GasolineSource => Flammability::NotFlammable,
             Element::FireSource => Flammability::NotFlammable,
+            Element::Volcano => Flammability::NotFlammable,
             Element::Steam => Flammability::NotFlammable,
             Element::Hydrogen => Flammability::Flammable {
                 prob: 0.98,
@@ -283,7 +286,8 @@ impl Element {
             Element::Gasoline => "A highly flammable fuel.",
             Element::WaterSource => "A source of water.",
             Element::GasolineSource => "A source of gasoline.",
-            Element::FireSource => "A burning solid that never extinguishes",
+            Element::FireSource => "A burning solid that never extinguishes.",
+            Element::Volcano => "An extremely hot source of flames and lava.",
             Element::Steam => {
                 "Water vapor that condensates over time and when touching cold elements."
             },
@@ -320,6 +324,7 @@ impl Display for Element {
                 Element::Flame => "Fire",
                 Element::BurningParticle { .. } => "INVALID",
                 Element::FireSource => "Fire Source",
+                Element::Volcano => "Volcano",
                 Element::Gasoline => "Gasoline",
                 Element::GasolineSource => "Gas Station",
                 Element::Methane => "Methane",

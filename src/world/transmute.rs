@@ -33,6 +33,12 @@ enum Transmutation {
         outcome_a: Vec<Element>,
         outcome_b: Option<Element>,
     },
+    /// An element transforms into one or many of B and exactly one of A
+    WithProbabilityOfMultipleB {
+        probability: f64,
+        outcome_b: Vec<Element>,
+        outcome_a: Option<Element>,
+    },
 }
 
 const LIQUID_SOURCE_SPAWN_PROBABILITY: f64 = 0.015;
@@ -75,6 +81,12 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
                 outcome_a: Some(Element::Steam),
                 outcome_b: Some(Element::FireSource),
             },
+            // Water boils immediately when touching very hot surfaces
+            Element::Volcano => Transmutation::WithProbability {
+                probability: 0.1,
+                outcome_a: Some(Element::Steam),
+                outcome_b: Some(Element::Volcano),
+            },
             _ => Transmutation::None,
         },
         Element::SaltWater => match b {
@@ -89,6 +101,12 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
                 probability: 0.01,
                 outcome_a: vec![Element::Steam, Element::Salt],
                 outcome_b: Some(Element::FireSource),
+            },
+            // Salt Water boils immediately when touching very hot surfaces
+            Element::Volcano => Transmutation::WithProbabilityOfMultipleA {
+                probability: 0.1,
+                outcome_a: vec![Element::Steam, Element::Salt],
+                outcome_b: Some(Element::Volcano),
             },
             _ => Transmutation::None,
         },
@@ -137,6 +155,37 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
                 outcome_b: Some(Element::Flame),
             },
             _ => Transmutation::None,
+        },
+        Element::Volcano => match b {
+            // Volcano spawns flames and lava (low probability for lava)
+            Element::None | Element::Flame => Transmutation::WithProbabilityOfMultipleB {
+                probability: 0.004,
+                outcome_a: Some(Element::Volcano),
+                outcome_b: vec![
+                    Element::Flame,
+                    Element::Flame,
+                    Element::Flame,
+                    Element::Lava,
+                ],
+            },
+            // Volcano immediately ignites all flammable elements
+            e => match e.flammability() {
+                Flammability::NotFlammable => Transmutation::None,
+                Flammability::Flammable {
+                    prob,
+                    decay_prob,
+                    flame_spawn_prob,
+                } => Transmutation::WithProbability {
+                    probability: (prob * 1.5).min(1.0),
+                    outcome_a: Some(*a),
+                    outcome_b: Some(Element::BurningParticle {
+                        burned_element_kind: b.kind(),
+                        decay_prob,
+                        flame_spawn_prob,
+                        spawns_ash: matches!(e, Element::Wood),
+                    }),
+                },
+            },
         },
         Element::Hydrogen => Transmutation::None,
         Element::Steam => match b {
@@ -187,6 +236,11 @@ fn can_transmute(a: &Element, b: &Element) -> Transmutation {
                 probability: 0.01,
                 outcome_a: vec![Element::Dust, Element::Steam],
                 outcome_b: Some(Element::FireSource),
+            },
+            Element::Volcano => Transmutation::WithProbabilityOfMultipleA {
+                probability: 0.04,
+                outcome_a: vec![Element::Dust, Element::Steam],
+                outcome_b: Some(Element::Volcano),
             },
             _ => Transmutation::None,
         },
@@ -365,6 +419,17 @@ impl GameWorld {
                     if rng.random_bool(probability) {
                         self.board[x][y] = *outcome_a.choose(rng).unwrap_or(&Element::None);
                         self.board[b_x as usize][b_y as usize] = outcome_b.unwrap_or(Element::None);
+                    }
+                },
+                Transmutation::WithProbabilityOfMultipleB {
+                    probability,
+                    outcome_a,
+                    outcome_b,
+                } => {
+                    if rng.random_bool(probability) {
+                        self.board[x][y] = outcome_a.unwrap_or(Element::None);
+                        self.board[b_x as usize][b_y as usize] =
+                            *outcome_b.choose(rng).unwrap_or(&Element::None);
                     }
                 },
             }

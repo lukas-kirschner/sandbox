@@ -42,6 +42,7 @@ impl Element {
             Element::Flame => Color::RGB(0xf2, 0x92, 0x1d),
             Element::BurningParticle { .. } => Color::RGB(0xd9, 0x67, 0x04),
             Element::FireSource => Color::RGB(0xd6, 0x9f, 0x7e),
+            Element::Volcano => Color::RGB(0xc6, 0x8f, 0x6e),
             Element::Gasoline => Color::RGB(0x92, 0x19, 0x09),
             Element::GasolineSource => Color::RGB(0x82, 0x15, 0x06),
             Element::Sink => Color::RGB(0x3, 0x0, 0x15),
