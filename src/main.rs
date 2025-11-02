@@ -185,7 +185,7 @@ fn main() -> Result<(), String> {
         // platform::context() has SIDE EFFECTS - Calling it twice causes button clicks to be ignored!
         let ctx = platform.context();
         build_element_buttons(&ctx, &game_world, &mut current_elem);
-        build_top_settings_pane(&ctx, &mut game_world);
+        build_top_settings_pane(&ctx, &mut game_world, &mut world);
         build_bottom_status_pane(&ctx, &mut game_world, over_elem);
 
         let output = platform.end_frame(&mut video_subsystem).unwrap();
@@ -270,7 +270,7 @@ fn build_element_buttons(context: &egui::Context, game_world: &Ui, selected: &mu
             }
         });
 }
-fn build_top_settings_pane(context: &egui::Context, game_world: &mut Ui) {
+fn build_top_settings_pane(context: &egui::Context, game_world: &mut Ui, board: &mut GameWorld) {
     let buttonbar_height = game_world.top_buttonbar_height();
     egui::TopBottomPanel::top("TopPnl")
         .resizable(false)
@@ -283,8 +283,18 @@ fn build_top_settings_pane(context: &egui::Context, game_world: &mut Ui) {
         .show(context, |ui| {
             // Add top margin
             ui.with_layout(Layout::left_to_right(Align::TOP), |ui| {
+                ui.scope(|ui| {
+                    ui.set_width(game_world.left_buttonbar_width());
+                    ui.set_height(ui.available_height());
+                    ui.with_layout(Layout::left_to_right(Align::Max), |ui| {
+                        let rst = ui.button("Reset");
+                        if rst.clicked() {
+                            board.reset();
+                        }
+                        rst.on_hover_text_at_pointer("Reset the game board (delete everything)");
+                    });
+                });
                 // Start items at left board edge
-                ui.add_space(game_world.left_buttonbar_width());
                 ui.with_layout(Layout::top_down(Align::LEFT), |ui| {
                     ui.label("Cursor:");
                 });

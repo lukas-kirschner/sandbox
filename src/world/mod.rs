@@ -696,6 +696,10 @@ impl GameWorld {
             height,
         }
     }
+    pub fn reset(&mut self) {
+        self.board = vec![vec![Element::None; self.height]; self.width];
+        self.moves.clear();
+    }
     pub fn board(&self) -> &Vec<Vec<Element>> {
         &self.board
     }
