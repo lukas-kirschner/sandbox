@@ -1,5 +1,5 @@
 //   sandbox - World - tick functions and movement logic
-//   Copyright (C) 2025  Lukas Kirschner
+//   Copyright (C) 2025 Lukas Kirschner
 //
 //   This program is free software: you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
