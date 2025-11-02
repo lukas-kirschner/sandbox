@@ -130,8 +130,8 @@ fn main() -> Result<(), String> {
                         WindowEvent::Resized(width, height) | WindowEvent::SizeChanged(width, height),
                     ..
                 } => {
-                    (game_world, world) = game_world.resize(
-                        world,
+                    game_world = game_world.resize(
+                        &mut world,
                         max(300, width) as usize,
                         max(200, height) as usize,
                     );
@@ -187,6 +187,7 @@ fn main() -> Result<(), String> {
         build_element_buttons(&ctx, &game_world, &mut current_elem);
         build_top_settings_pane(&ctx, &mut game_world, &mut world);
         build_bottom_status_pane(&ctx, &mut game_world, over_elem);
+        build_left_buttons(&ctx, &mut game_world, &mut world);
 
         let output = platform.end_frame(&mut video_subsystem).unwrap();
         let v_primitives = platform.tessellate(&output);
@@ -268,6 +269,33 @@ fn build_element_buttons(context: &egui::Context, game_world: &Ui, selected: &mu
                 ui.separator();
                 ui.add_space(ui.spacing().item_spacing.y);
             }
+        });
+}
+
+fn build_left_buttons(context: &egui::Context, game_world: &mut Ui, board: &mut GameWorld) {
+    let buttonbar_width = game_world.left_buttonbar_width();
+    egui::SidePanel::left("LeftPnl")
+        .exact_width(buttonbar_width)
+        .resizable(false)
+        .frame(
+            Frame::default()
+                .outer_margin(Margin::same(0.0))
+                .inner_margin(Margin::same(context.style().spacing.item_spacing.x)),
+        )
+        .show(context, |ui| {
+            ui.label("Scale:");
+            ui.add_space(ui.spacing().item_spacing.y);
+            for s in &[1, 2, 4, 6, 8] {
+                let selected = game_world.scaling_factor;
+                let mut is_selected = *s == selected;
+                let tv = ui.toggle_value(&mut is_selected, format!("{}", s));
+                if tv.clicked() && is_selected {
+                    game_world.rescale(board, s);
+                }
+                tv.on_hover_text_at_pointer(format!("Set the pixel scale to {}x{}", s, s));
+            }
+            ui.separator();
+            ui.add_space(ui.spacing().item_spacing.y);
         });
 }
 fn build_top_settings_pane(context: &egui::Context, game_world: &mut Ui, board: &mut GameWorld) {

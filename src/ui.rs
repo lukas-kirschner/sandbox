@@ -44,6 +44,16 @@ pub struct Ui {
 }
 
 impl Ui {
+    pub(crate) fn rescale(&mut self, board: &mut GameWorld, new_scale: &usize) {
+        self.scaling_factor = *new_scale;
+        board.resize(
+            self.board_width / self.scaling_factor,
+            self.board_height / self.scaling_factor,
+        );
+    }
+}
+
+impl Ui {
     pub const fn top_buttonbar_height(&self) -> f32 {
         // Padding includes the 1 pixel-wide border - i.e., subtract 2.
         self.top_padding() as f32 - 2.
@@ -184,12 +194,7 @@ impl Ui {
         ret.board_height = ret.board_height - (ret.board_height % ret.scaling_factor);
         ret
     }
-    pub fn resize(
-        self,
-        board: GameWorld,
-        new_width: usize,
-        new_height: usize,
-    ) -> (Self, GameWorld) {
+    pub fn resize(self, board: &mut GameWorld, new_width: usize, new_height: usize) -> Self {
         let mut ret = Self {
             win_width: new_width,
             win_height: new_height,
@@ -201,15 +206,11 @@ impl Ui {
         ret.board_width = ret.board_width - (ret.board_width % ret.scaling_factor);
         ret.board_height = ret.board_height - (ret.board_height % ret.scaling_factor);
 
-        let resized_board = board.resize(
+        board.resize(
             ret.board_width / ret.scaling_factor,
             ret.board_height / ret.scaling_factor,
         );
-        // println!(
-        //     "Resized window: ({}x{}) and board: ({}x{})",
-        //     ret.win_width, ret.win_height, ret.board_width, ret.board_height
-        // );
-        (ret, resized_board)
+        ret
     }
     /// Draw the window content
     pub fn draw(
