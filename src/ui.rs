@@ -45,13 +45,16 @@ pub struct Ui {
 
 impl Ui {
     pub const fn top_buttonbar_height(&self) -> f32 {
-        ((self.win_height - self.board_height) / 2 - 1) as f32
+        // Padding includes the 1 pixel-wide border - i.e., subtract 2.
+        self.top_padding() as f32 - 2.
     }
     pub const fn right_buttonbar_width(&self) -> f32 {
-        ((self.win_width - self.board_width) / 2 - 2) as f32
+        // Padding includes the 1 pixel-wide border - i.e., subtract 2.
+        self.right_padding() as f32 - 2.
     }
     pub const fn left_buttonbar_width(&self) -> f32 {
-        ((self.win_width - self.board_width) / 2 - 2) as f32
+        // Padding includes the 1 pixel-wide border - i.e., subtract 2.
+        self.left_padding() as f32 - 2.
     }
     pub(crate) fn draw_mouse_preview_at<T: RenderTarget>(
         &self,
@@ -65,9 +68,9 @@ impl Ui {
                 width: self.win_width,
                 height: self.win_height,
                 left_padding: self.left_padding(),
-                right_padding: self.win_width as i32 - self.right_padding(),
+                right_padding: self.right_padding(),
                 top_padding: self.top_padding(),
-                bottom_padding: self.win_height as i32 - self.bottom_padding(),
+                bottom_padding: self.bottom_padding(),
             };
             // TODO Rewrite Canvas Display to use scaling factor to show pixel-perfect previews
             // The X coord of the preview tile center
@@ -131,10 +134,8 @@ impl Ui {
         window_y: i32,
     ) -> Option<(i32, i32)> {
         let ret = (
-            (window_x - (self.win_width - self.board_width) as i32 / 2)
-                / self.scaling_factor as i32,
-            (window_y - (self.win_height - self.board_height) as i32 / 2)
-                / self.scaling_factor as i32,
+            (window_x - self.left_padding()) / self.scaling_factor as i32,
+            (window_y - self.top_padding()) / self.scaling_factor as i32,
         );
         if ret.0 < 0
             || ret.1 < 0
@@ -147,19 +148,25 @@ impl Ui {
             Some(ret)
         }
     }
-    fn left_padding(&self) -> i32 {
-        ((self.win_width - self.board_width) / 2) as i32 - 1
+    /// The space between left window border and game board, including the border
+    const fn left_padding(&self) -> i32 {
+        ((self.win_width - self.board_width) / 2) as i32
     }
-    fn right_padding(&self) -> i32 {
-        (self.win_width as i32 - self.left_padding())
-            + ((self.win_width - self.board_width) % 2) as i32
+    /// The space between right window border and game board, including the border
+    const fn right_padding(&self) -> i32 {
+        (self.win_width as i32 - self.left_padding() - self.board_width as i32)
+            + (self.win_width as i32 - self.left_padding() - self.board_width as i32)
+                % self.scaling_factor as i32
     }
-    fn top_padding(&self) -> i32 {
-        ((self.win_height - self.board_height) / 2) as i32 - 1
+    /// The space between top window border and top game board, including the border
+    const fn top_padding(&self) -> i32 {
+        ((self.win_height - self.board_height) / 2) as i32
     }
-    fn bottom_padding(&self) -> i32 {
-        (self.win_height as i32 - self.top_padding())
-            + ((self.win_height - self.board_height) % 2) as i32
+    /// The space between bottom window border and bottom game board, including the border
+    const fn bottom_padding(&self) -> i32 {
+        (self.win_height as i32 - self.top_padding() - self.board_height as i32)
+            + (self.win_height as i32 - self.top_padding() - self.board_height as i32)
+                % self.scaling_factor as i32
     }
     pub fn new(width: usize, height: usize, scaling_factor: usize) -> Self {
         Self {
@@ -178,27 +185,33 @@ impl Ui {
         texture: &mut Texture,
         world: &GameWorld,
     ) -> Result<(), String> {
-        let left_padding: i32 = self.left_padding();
-        let top_padding: i32 = self.top_padding();
-        let right_padding: i32 = self.right_padding();
-        let bottom_padding: i32 = self.bottom_padding();
-
+        // Calculate space between window border and game board border
+        let left_padding: i32 = self.left_padding() - 1;
+        let top_padding: i32 = self.top_padding() - 1;
+        let right_padding: i32 = self.right_padding() - 1;
+        let bottom_padding: i32 = self.bottom_padding() - 1;
         // Draw a border around the board
         canvas.set_draw_color(BOARD_BORDER_COLOR);
         canvas.draw_line(
             Point::from((left_padding, top_padding)),
-            Point::from((right_padding, top_padding)),
+            Point::from((self.win_width as i32 - right_padding, top_padding)),
         )?;
         canvas.draw_line(
-            Point::from((right_padding, top_padding)),
-            Point::from((right_padding, bottom_padding)),
+            Point::from((self.win_width as i32 - right_padding, top_padding)),
+            Point::from((
+                self.win_width as i32 - right_padding,
+                self.win_height as i32 - bottom_padding,
+            )),
         )?;
         canvas.draw_line(
-            Point::from((right_padding, bottom_padding)),
-            Point::from((left_padding, bottom_padding)),
+            Point::from((
+                self.win_width as i32 - right_padding,
+                self.win_height as i32 - bottom_padding,
+            )),
+            Point::from((left_padding, self.win_height as i32 - bottom_padding)),
         )?;
         canvas.draw_line(
-            Point::from((left_padding, bottom_padding)),
+            Point::from((left_padding, self.win_height as i32 - bottom_padding)),
             Point::from((left_padding, top_padding)),
         )?;
 
@@ -229,8 +242,8 @@ impl Ui {
             texture,
             None,
             Rect::from((
-                left_padding + 1,
-                top_padding + 1,
+                self.left_padding(),
+                self.top_padding(),
                 self.board_width as u32,
                 self.board_height as u32,
             )),
