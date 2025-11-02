@@ -177,7 +177,7 @@ impl Ui {
             win_height: height,
             board_width: width - HORIZ_MARGIN,
             board_height: height - VERT_MARGIN,
-            cursor: CursorKind::Square { size: 3 },
+            cursor: CursorKind::Pen { size: 3 },
             scaling_factor,
         }
     }

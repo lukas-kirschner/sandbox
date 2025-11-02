@@ -194,6 +194,14 @@ impl GameWorld {
                         && px != x
                         && py != y
                     {
+                        Rectangle::with_center(Point::new(x, y), Size::new(*size, *size))
+                            .into_styled(PrimitiveStyle::with_fill(element))
+                            .draw(self)
+                            .unwrap();
+                        Rectangle::with_center(Point::new(px, py), Size::new(*size, *size))
+                            .into_styled(PrimitiveStyle::with_fill(element))
+                            .draw(self)
+                            .unwrap();
                         Line::new(Point::new(x, y), Point::new(px, py))
                             .into_styled(PrimitiveStyle::with_stroke(element, *size))
                             .draw(self)
