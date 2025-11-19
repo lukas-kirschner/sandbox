@@ -17,7 +17,9 @@ strum = "0.27.2"
 strum_macros = "0.27.2"
 egui_sdl2_canvas = { git = "https://github.com/MatthieuHAMEL/egui_sdl2_canvas" }
 egui_sdl2_platform = "0.3"
-egui = "0.27"
+egui = "0.27.2"
+egui_extras = { version = "0.27.2", features = ["all_loaders", "image"] }
+image = { version = "0.24", default-features = false, features = ["png"] }
 embedded-graphics = "0.8.1"
 itertools = "0.14.0"
 

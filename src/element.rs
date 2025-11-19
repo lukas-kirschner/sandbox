@@ -15,6 +15,7 @@
 //   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use std::fmt::{Display, Formatter};
+use egui::ImageSource;
 use strum_macros::EnumIter;
 
 pub const AIR_DENSITY: f32 = 1.2754;
@@ -300,6 +301,13 @@ impl Element {
             Element::Sink => "A sink that destroys all adjacent elements.",
             Element::ColdLava => "A very heavy mixture of stone and minerals.",
             Element::Lava => "Molten stone and volcanic minerals.",
+        }
+    }
+    /// Get the image path for the UI icon of this element or None if there is no icon
+    pub const fn ui_image_file(&self) -> Option<ImageSource<'static>> {
+        match self {
+            Element::Sand => Some(egui::include_image!("../assets/sand.png")),
+            _ => None,
         }
     }
 }

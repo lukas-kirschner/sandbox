@@ -30,7 +30,9 @@ use crate::element::{Element, ElementKind};
 use crate::ui::{CursorKind, Ui};
 use crate::world::GameWorld;
 use egui::FontFamily::Proportional;
-use egui::{Align, Color32, FontId, Frame, Layout, Margin, RichText, TextStyle, Vec2, Visuals};
+use egui::{
+    Align, Color32, FontId, Frame, Layout, Margin, RichText, TextStyle, Vec2, Visuals, Widget,
+};
 use egui_sdl2_canvas::Painter;
 use itertools::Itertools;
 use rand::SeedableRng;
@@ -76,6 +78,7 @@ fn main() -> Result<(), String> {
     .map_err(|e| format!("{}", e))?;
     // Set up egui style:
     platform.context().set_pixels_per_point(1.0);
+    egui_extras::install_image_loaders(&platform.context());
     platform.context().set_visuals(egui::Visuals::dark());
     platform.context().style_mut(|style| {
         style.text_styles = [
@@ -245,8 +248,17 @@ fn build_element_buttons(context: &egui::Context, game_world: &Ui, selected: &mu
                         continue;
                     }
                     let mut is_selected = &e == selected;
-                    let tv = ui.toggle_value(&mut is_selected, format!("{}", e));
-                    if tv.clicked() && is_selected {
+                    let tv = match e.ui_image_file() {
+                        Some(image) => ui.add_sized(
+                            (
+                                32. + ui.style().spacing.button_padding.x,
+                                32. + ui.style().spacing.button_padding.y,
+                            ),
+                            egui::Button::image(image).selected(is_selected),
+                        ),
+                        None => ui.toggle_value(&mut is_selected, format!("{}", e)),
+                    };
+                    if tv.clicked() {
                         *selected = e;
                     }
                     tv.on_hover_ui_at_pointer(|ui| {
